@@ -1,0 +1,33 @@
+{
+  "name": "rewear",
+  "version": "1.0.0",
+  "description": "Second-hand clothing marketplace",
+  "main": "index.js",
+  
+  "scripts": {
+    "dev": "nodemon server.js",
+  "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RivkiAyalon/rewear.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RivkiAyalon/rewear/issues"
+  },
+  "homepage": "https://github.com/RivkiAyalon/rewear#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.9.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
