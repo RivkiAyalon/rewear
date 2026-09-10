@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — ReWear</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div id="navbar"></div>
+
+  <main class="container page">
+    <div class="auth-box panel">
+
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Sign in</button>
+        <button class="tab" data-tab="register">Create account</button>
+      </div>
+
+      <!-- ===== Sign in ===== -->
+      <div id="loginForm">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input class="input" type="email" id="loginEmail" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input class="input" type="password" id="loginPassword">
+        </div>
+        <p id="loginError" class="field-error hidden"></p>
+        <button class="btn btn-primary btn-block" id="loginBtn">Sign in</button>
+      </div>
+
+      <!-- ===== Register ===== -->
+      <div id="registerForm" class="hidden">
+        <div class="field">
+          <label for="regName">Full name</label>
+          <input class="input" id="regName">
+        </div>
+        <div class="field">
+          <label for="regEmail">Email</label>
+          <input class="input" type="email" id="regEmail">
+        </div>
+        <div class="field">
+          <label for="regPassword">Password</label>
+          <input class="input" type="password" id="regPassword">
+          <div class="field-hint">At least 6 characters</div>
+        </div>
+        <div class="field">
+          <label for="regCity">City</label>
+          <input class="input" id="regCity">
+        </div>
+        <div class="field">
+          <label for="regPhone">Phone</label>
+          <input class="input" id="regPhone">
+        </div>
+        <p id="registerError" class="field-error hidden"></p>
+        <button class="btn btn-primary btn-block" id="registerBtn">Create account</button>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

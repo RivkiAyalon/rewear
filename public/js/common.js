@@ -56,7 +56,12 @@ async function api(path, options = {}) {
   const data = await res.json().catch(() => ({}));
 
   if (res.status === 401) {
-    logout();
+    // בעמודי ההזדהות 401 אומר "פרטים שגויים", לא "הטוקן פג"
+    const isAuthCall = path.includes('/api/auth/login') ||
+                       path.includes('/api/auth/register');
+    if (!isAuthCall) {
+      logout();
+    }
     throw new Error(data.message || 'Session expired');
   }
 

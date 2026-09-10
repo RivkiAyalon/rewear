@@ -384,3 +384,11 @@ img { max-width: 100%; display: block; }
   .cat-row { grid-template-columns: 1fr; gap: 12px; }
   .cat-tile { padding: 26px; font-size: 20px; }
 }
+
+/* ============ Auth ============ */
+.auth-box {
+  max-width: 420px;
+  margin: 40px auto;
+}
+.auth-box .tabs { margin-bottom: 24px; }
+.auth-box .tab { flex: 1; }
