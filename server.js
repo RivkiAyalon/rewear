@@ -13,6 +13,7 @@ app.use(express.json());
 // מגיש את קבצי ה-HTML, CSS ו-JS מתוך תיקיית public
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
 
 // חיבור ל-MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)
