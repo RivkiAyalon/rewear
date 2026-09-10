@@ -1,3 +1,4 @@
+const Order = require('../models/Order');
 const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
 const User   = require('../models/User');
@@ -115,5 +116,51 @@ exports.updateMe = async (req, res) => {
 
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+};
+
+
+exports.getPoints = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    // מכירות — כאן צברה נקודות
+    const sales = await Order.find({ sellerId: req.user.id, status: 'completed' })
+      .sort({ createdAt: -1 })
+      .populate('productId', 'title')
+      .populate('buyerId', 'name');
+
+    // קניות ששולמו בנקודות — כאן הוציאה
+    const purchases = await Order.find({
+      buyerId: req.user.id,
+      status: 'completed',
+      paymentMethod: 'points'
+    })
+      .sort({ createdAt: -1 })
+      .populate('productId', 'title');
+
+    const earned = sales.reduce((sum, o) => sum + o.pointsEarned, 0);
+    const spent  = purchases.reduce((sum, o) => sum + o.price, 0);
+
+    // מאחדים לרשימה אחת ממוינת לפי תאריך
+    const history = [
+      ...sales.map(o => ({
+        type: 'earned',
+        amount: o.pointsEarned,
+        title: o.productId?.title || 'Item',
+        date: o.createdAt
+      })),
+      ...purchases.map(o => ({
+        type: 'spent',
+        amount: o.price,
+        title: o.productId?.title || 'Item',
+        date: o.createdAt
+      }))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.json({ balance: user.points, earned, spent, history });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

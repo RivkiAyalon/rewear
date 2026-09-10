@@ -26,6 +26,7 @@
 
     <div class="tabs">
       <button class="tab active" data-tab="details">My details</button>
+      <button class="tab" data-tab="points">My points</button>
       <button class="tab" data-tab="items">My items</button>
       <button class="tab" data-tab="sell">Sell an item</button>
       <button class="tab" data-tab="favorites">Favorites</button>
@@ -56,6 +57,33 @@
         <button class="btn btn-primary" id="saveDetails">Save changes</button>
       </div>
     </section>
+
+    <!-- ===== רבקי — נקודות ===== -->
+<section id="tab-points" class="tab-panel hidden">
+  <div class="points-summary">
+    <div class="panel">
+      <div class="stat-label">Current balance</div>
+      <div class="stat-value" id="ptsBalance">0</div>
+    </div>
+    <div class="panel">
+      <div class="stat-label">Earned from sales</div>
+      <div class="stat-value" id="ptsEarned">0</div>
+    </div>
+    <div class="panel">
+      <div class="stat-label">Spent on purchases</div>
+      <div class="stat-value" id="ptsSpent">0</div>
+    </div>
+  </div>
+
+  <div class="panel mt">
+    <h3>How points work</h3>
+    <p class="muted">Every item you sell earns you points equal to its price.
+       One point equals one shekel, and you can use points to buy anything on ReWear.</p>
+  </div>
+
+  <h3 class="mt">Activity</h3>
+  <div id="ptsHistory"><div class="spinner"></div></div>
+</section>
 
     <!-- ===== מפתחת 2 — המוצרים שלי ===== -->
     <section id="tab-items" class="tab-panel hidden">

@@ -436,3 +436,32 @@ img { max-width: 100%; display: block; }
   .points-box { margin-left: 0; width: 100%; }
   .tabs { overflow-x: auto; }
 }
+
+/* ============ Points ============ */
+.points-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.stat-label { font-size: 14px; color: var(--ink-soft); margin-bottom: 4px; }
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+.pts-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+.pts-row:last-child { border-bottom: none; }
+.pts-amount { font-size: 17px; font-weight: 700; }
+.pts-amount.earned { color: var(--ok); }
+.pts-amount.spent  { color: var(--clay); }
+
+@media (max-width: 560px) {
+  .points-summary { grid-template-columns: 1fr; }
+}
