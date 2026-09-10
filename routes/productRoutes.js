@@ -11,5 +11,6 @@ router.get('/my', auth, ctrl.getMyProducts);
 
 // GET single product by ID
 router.get('/:id', ctrl.getProduct);
-
+// POST create product
+router.post('/', auth, ctrl.createProduct);
 module.exports = router;

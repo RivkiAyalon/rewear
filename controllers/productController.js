@@ -42,3 +42,17 @@ exports.getMyProducts = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// POST create product
+exports.createProduct = async (req, res) => {
+  try {
+    const product = new Product({
+      ...req.body,
+      sellerId: req.user.id
+    });
+    await product.save();
+    res.status(201).json(product);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
