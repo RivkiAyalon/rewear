@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — ReWear</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="container page">
+    <div class="shop-layout">
+      <aside id="filters"></aside>
+
+      <div>
+        <div class="flex between center mb">
+          <span id="resultCount" class="muted"></span>
+
+          <select class="select" id="sort" style="width:auto">
+            <option value="newest">Newest</option>
+            <option value="price_asc">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
+            <option value="popular">Most viewed</option>
+          </select>
+        </div>
+
+        <div id="results">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/categories.js"></script>
+  <script src="/js/shop.js"></script>
+</body>
+</html>

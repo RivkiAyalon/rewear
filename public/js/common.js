@@ -84,6 +84,25 @@ function formatDate(iso) {
   });
 }
 
+// ============ Shared product card ============
+
+function productCard(p) {
+  return `
+    <a href="/product.html?id=${p._id}" class="card">
+      <div class="card-media">
+        <img src="${p.images?.[0] || ''}" alt="${p.title}">
+        ${p.status === 'sold' ? '<span class="badge badge-sold card-fav">Sold</span>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-brand">${p.brand || ''}</div>
+        <div class="card-title">${p.title}</div>
+        <div class="card-meta">${p.size} · ${p.condition}</div>
+        <div class="card-price">${formatPrice(p.price)}</div>
+      </div>
+    </a>
+  `;
+}
+
 // ============ Toast messages ============
 
 function showToast(message, type = 'info') {
