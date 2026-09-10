@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My profile — ReWear</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div id="navbar"></div>
+
+  <main class="container page">
+
+    <div class="profile-head">
+      <div class="profile-avatar" id="profileAvatar"></div>
+      <div>
+        <h1 id="profileName">...</h1>
+        <p class="muted" id="profileMeta"></p>
+      </div>
+      <div class="points-box">
+        <span class="points-value" id="profilePoints">0</span>
+        <span class="points-label">points</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="details">My details</button>
+      <button class="tab" data-tab="items">My items</button>
+      <button class="tab" data-tab="sell">Sell an item</button>
+      <button class="tab" data-tab="favorites">Favorites</button>
+      <button class="tab" data-tab="orders">Orders</button>
+    </div>
+
+    <!-- ===== רבקי — פרטים אישיים ===== -->
+    <section id="tab-details" class="tab-panel">
+      <div class="panel" style="max-width:460px">
+        <div class="field">
+          <label for="detName">Full name</label>
+          <input class="input" id="detName">
+        </div>
+        <div class="field">
+          <label for="detEmail">Email</label>
+          <input class="input" id="detEmail" disabled>
+          <div class="field-hint">Email cannot be changed</div>
+        </div>
+        <div class="field">
+          <label for="detCity">City</label>
+          <input class="input" id="detCity">
+        </div>
+        <div class="field">
+          <label for="detPhone">Phone</label>
+          <input class="input" id="detPhone">
+        </div>
+        <p id="detError" class="field-error hidden"></p>
+        <button class="btn btn-primary" id="saveDetails">Save changes</button>
+      </div>
+    </section>
+
+    <!-- ===== מפתחת 2 — המוצרים שלי ===== -->
+    <section id="tab-items" class="tab-panel hidden">
+      <div class="empty"><h3>Coming soon</h3></div>
+    </section>
+
+    <!-- ===== מפתחת 2 — טופס פרסום ===== -->
+    <section id="tab-sell" class="tab-panel hidden">
+      <div class="empty"><h3>Coming soon</h3></div>
+    </section>
+
+    <!-- ===== מפתחת 4 — מועדפים ===== -->
+    <section id="tab-favorites" class="tab-panel hidden">
+      <div class="empty"><h3>Coming soon</h3></div>
+    </section>
+
+    <!-- ===== מפתחת 4 — הזמנות ומכירות ===== -->
+    <section id="tab-orders" class="tab-panel hidden">
+      <div class="empty"><h3>Coming soon</h3></div>
+    </section>
+
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>

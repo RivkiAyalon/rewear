@@ -98,3 +98,22 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.updateMe = async (req, res) => {
+  try {
+    const { name, city, phone } = req.body;
+
+    // שדות שאסור לשנות דרך כאן: email, role, points, password
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, city, phone },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(publicUser(user));
+
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
