@@ -55,4 +55,43 @@ exports.createProduct = async (req, res) => {
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
+
+// PUT update product
+exports.updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    if (product.sellerId.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'You can only edit your own items' });
+    }
+
+    delete req.body.sellerId;
+    delete req.body.status;
+
+    Object.assign(product, req.body);
+    await product.save();
+    res.json(product);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+// DELETE product
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    if (product.sellerId.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'You can only delete your own items' });
+    }
+
+    await product.deleteOne();
+    res.json({ message: 'Product deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 };
