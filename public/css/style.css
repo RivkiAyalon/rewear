@@ -465,3 +465,24 @@ img { max-width: 100%; display: block; }
 @media (max-width: 560px) {
   .points-summary { grid-template-columns: 1fr; }
 }
+
+
+/* ============ Table ============ */
+.table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.table th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.table tr:last-child td { border-bottom: none; }
+.row-actions { white-space: nowrap; text-align: right; }
+.danger-link { color: var(--danger); }
