@@ -1,6 +1,7 @@
 const state = {
-  page: 1,
-  sort: 'newest',
+  page: Number(getParam('page')) || 1,
+  sort: getParam('sort') || 'newest',
+  search: getParam('search') || '',
   gender: getParam('gender') || '',
   category: getParam('category') || '',
   type: getParam('type') || '',
@@ -24,6 +25,8 @@ async function loadProducts() {
   try {
     const data = await api(`/api/products?${params}`);
     const products = data.products || data;
+    const usdRate = await getUsdRate();
+    renderPagination(data.pages || 1);
 
     document.getElementById('resultCount').textContent =
       `${data.total ?? products.length} items`;
@@ -38,14 +41,62 @@ async function loadProducts() {
       return;
     }
 
-    box.innerHTML =
-      `<div class="grid">${products.map(productCard).join('')}</div>`;
+    box.innerHTML = `
+  <div class="grid">
+    ${products.map(p =>
+      productCard({
+        ...p,
+        usdPrice: Math.round(p.price * usdRate)
+      })
+    ).join('')}
+  </div>`;
 
   } catch (err) {
     box.innerHTML =
       `<div class="empty"><h3>Could not load items</h3></div>`;
   }
 }
+
+function renderPagination(totalPages) {
+  const el = document.getElementById('pagination');
+
+  if (totalPages <= 1) {
+    el.innerHTML = '';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="flex center gap mt">
+      <button class="btn btn-outline btn-sm" id="prevPage"
+        ${state.page <= 1 ? 'disabled' : ''}>
+        Previous
+      </button>
+
+      <span class="muted">Page ${state.page} of ${totalPages}</span>
+
+      <button class="btn btn-outline btn-sm" id="nextPage"
+        ${state.page >= totalPages ? 'disabled' : ''}>
+        Next
+      </button>
+    </div>
+  `;
+
+  document.getElementById('prevPage').onclick = () => {
+    if (state.page > 1) {
+      state.page--;
+      loadProducts();
+    }
+  };
+
+  document.getElementById('nextPage').onclick = () => {
+    if (state.page < totalPages) {
+      state.page++;
+      loadProducts();
+    }
+  };
+}
+
+document.getElementById('sort').value = state.sort;
 
 document.getElementById('sort').onchange = e => {
   state.sort = e.target.value;

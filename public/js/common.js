@@ -97,7 +97,10 @@ function productCard(p) {
         <div class="card-brand">${p.brand || ''}</div>
         <div class="card-title">${p.title}</div>
         <div class="card-meta">${p.size} · ${p.condition}</div>
-        <div class="card-price">${formatPrice(p.price)}</div>
+        <div class="card-price">
+          ${formatPrice(p.price)}
+          ${p.usdPrice != null ? `<span class="muted">≈ $${p.usdPrice}</span>` : ''}
+        </div>
       </div>
     </a>
   `;

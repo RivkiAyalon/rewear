@@ -101,7 +101,7 @@ exports.createProduct = async (req, res) => {
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
-
+};
 // PUT update product
 exports.updateProduct = async (req, res) => {
   try {
@@ -138,6 +138,4 @@ exports.deleteProduct = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
-
 };
