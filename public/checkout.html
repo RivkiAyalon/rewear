@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Checkout - ReWear</title>
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <main class="checkout-page">
+
+    <h1>תשלום</h1>
+
+    <p>
+      <strong>Demo mode — no real payment is processed.</strong>
+    </p>
+
+    <!-- פרטי המוצר -->
+    <section id="productSummary">
+
+      <h2>סיכום הפריט</h2>
+
+      <img
+        id="productImage"
+        src=""
+        alt="Product"
+        style="max-width: 250px;"
+      >
+
+      <h3 id="productTitle"></h3>
+
+      <p>
+        מחיר:
+        <span id="productPrice"></span> ₪
+      </p>
+
+    </section>
+
+    <!-- עיר משלוח -->
+    <section>
+
+      <h2>פרטי משלוח</h2>
+
+      <label for="shippingCity">
+        עיר:
+      </label>
+
+      <select id="shippingCity">
+        <option value="">בחרי עיר</option>
+      </select>
+
+    </section>
+
+    <!-- אמצעי תשלום -->
+    <section>
+
+      <h2>אמצעי תשלום</h2>
+
+      <label>
+        <input
+          type="radio"
+          name="paymentMethod"
+          value="card"
+          checked
+        >
+        Credit card
+      </label>
+
+      <br>
+
+      <label id="pointsOption">
+
+        <input
+          type="radio"
+          name="paymentMethod"
+          value="points"
+          id="pointsRadio"
+        >
+
+        Points
+
+        <span id="pointsMessage"></span>
+
+      </label>
+
+    </section>
+
+    <!-- פרטי כרטיס -->
+    <section id="cardSection">
+
+      <h2>פרטי כרטיס</h2>
+
+      <div>
+        <label for="cardHolder">
+          שם בעל הכרטיס
+        </label>
+
+        <input
+          id="cardHolder"
+          type="text"
+        >
+      </div>
+
+      <div>
+        <label for="cardNumber">
+          מספר כרטיס
+        </label>
+
+        <input
+          id="cardNumber"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+        >
+      </div>
+
+      <div>
+        <label for="expiry">
+          תוקף MM/YY
+        </label>
+
+        <input
+          id="expiry"
+          type="text"
+          placeholder="MM/YY"
+          autocomplete="off"
+        >
+      </div>
+
+      <div>
+        <label for="cvv">
+          CVV
+        </label>
+
+        <input
+          id="cvv"
+          type="password"
+          inputmode="numeric"
+          maxlength="3"
+          autocomplete="off"
+        >
+      </div>
+
+    </section>
+
+    <button id="payButton">
+      אישור רכישה
+    </button>
+
+    <p id="checkoutMessage"></p>
+
+  </main>
+
+  <script src="/js/cities.js"></script>
+  <script src="/js/checkout.js"></script>
+
+</body>
+</html>

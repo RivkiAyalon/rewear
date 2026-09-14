@@ -94,6 +94,22 @@ async function loadProduct() {
         document.getElementById('mainImage').src = img.src;
       };
     });
+    document.getElementById('favoriteBtn').onclick = async () => {
+  try {
+    await api('/api/favorites', {
+      method: 'POST',
+      body: JSON.stringify({
+        productId: product._id
+      })
+    });
+
+    document.getElementById('favoriteBtn').textContent = '♥ Favorited';
+    showToast('Added to favorites', 'success');
+
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
 
     document.getElementById('buyBtn').onclick = () => {
       if (product.status !== 'sold') {
