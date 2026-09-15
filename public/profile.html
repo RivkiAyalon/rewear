@@ -285,15 +285,15 @@
       id="tab-items"
       class="tab-panel hidden">
 
-      <div class="empty">
-
-        <h3>
-          Coming soon
-        </h3>
-
+      <div class="panel">
+        <h2>My Products</h2>
+        <div id="my-products-container">
+          <!-- כאן יתרנדרו המוצרים של המשתמש בעזרת myProducts.js -->
+        </div>
       </div>
 
     </section>
+    
 
 
     <!-- =========================
@@ -304,12 +304,65 @@
       id="tab-sell"
       class="tab-panel hidden">
 
-      <div class="empty">
+      <div class="panel" style="max-width: 600px;">
+        <h2>Publish New Item</h2>
+        
+        <form id="publish-form">
+          <div class="field">
+            <label for="title">Title</label>
+            <input class="input" id="title" required placeholder="e.g. Vintage Denim Jacket">
+          </div>
 
-        <h3>
-          Coming soon
-        </h3>
+          <div class="field">
+            <label for="gender">Gender</label>
+            <select class="select" id="gender" required>
+              <option value="">Select gender</option>
+              <option value="women">Women</option>
+              <option value="men">Men</option>
+              <option value="kids">Kids</option>
+            </select>
+          </div>
 
+          <div class="field">
+            <label for="category">Category</label>
+            <select class="select" id="category" disabled required>
+              <option value="">Select category</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="type">Item Type</label>
+            <select class="select" id="type" disabled required>
+              <option value="">Select type</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="size">Size</label>
+            <select class="select" id="size" disabled required>
+              <option value="">Select size</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="price">Price (Points)</label>
+            <input type="number" class="input" id="price" min="1" required placeholder="e.g. 50">
+          </div>
+
+          <div class="field">
+            <label for="description">Description</label>
+
+            <textarea class="input" id="description" rows="3" placeholder="Describe condition, brand, style..."></textarea>
+          </div>
+
+          <div class="field">
+            <label>Images (up to 4)</label>
+            <input type="file" id="image-upload" class="input" multiple accept="image/*">
+            <div id="image-preview" style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary mt">Publish Item</button>
+        </form>
       </div>
 
     </section>
@@ -399,6 +452,11 @@
   <script src="/js/cities.js"></script>
 
   <script src="/js/profile.js"></script>
+  
+  <script src="/js/categories.js"></script>
+  <script src="/js/upload.js"></script>
+  <script src="/js/products.js"></script>
+  <script src="/js/myProducts.js"></script>
 
 </body>
 
