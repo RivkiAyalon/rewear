@@ -42,8 +42,7 @@ async function loadMyProducts() {
       const productCard = document.createElement('div');
       productCard.className = 'product-card field';
       
-      const soldTag = product.isSold ? `<span class="sold-tag">נמכר!</span>` : '';
-      
+      const soldTag = product.status === 'sold' ? `<span class="sold-tag">נמכר!</span>` : '';      
       productCard.innerHTML = `
         <h3>${product.title}</h3>
         ${soldTag}
@@ -94,3 +93,38 @@ document.addEventListener('DOMContentLoaded', loadMyProducts);
 document.querySelectorAll('.tab[data-tab="items"]').forEach(tab => {
   tab.addEventListener('click', loadMyProducts);
 });
+
+async function editProduct(productId) {
+  try {
+    const res = await fetch(`/api/products/${productId}`);
+    if (!res.ok) throw new Error('Failed to fetch product');
+    const product = await res.json();
+
+    // מעבר לטאב Sell an item
+    const sellTab = document.querySelector('.tab[data-tab="sell"]');
+    if (sellTab) sellTab.click();
+
+    // מילוי הנתונים בטופס הפרסום
+    document.getElementById('title').value = product.title || '';
+    document.getElementById('price').value = product.price || '';
+    document.getElementById('description').value = product.description || '';
+    
+    if (product.gender) {
+      const genderSelect = document.getElementById('gender');
+      genderSelect.value = product.gender;
+      genderSelect.dispatchEvent(new Event('change'));
+    }
+
+    // שמירת ה-ID על הטופס לצורך עדכון (PUT)
+    const form = document.getElementById('publish-form');
+    if (form) {
+      form.dataset.editId = productId;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.textContent = 'Update Item';
+    }
+
+  } catch (err) {
+    console.error('Error loading product for edit:', err);
+    alert('שגיאה בטעינת נתוני המוצר לעריכה');
+  }
+}
