@@ -139,3 +139,17 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// פונקציה למשיכת המוצרים של המשתמש המחובר
+exports.getMyProducts = async (req, res) => {
+  try {
+    // מחפשים את כל המוצרים שה-sellerId שלהם תואם ל-ID של המשתמש המחובר
+    // וממיינים מהחדש לישן (-1)
+    const products = await Product.find({ sellerId: req.user.id })
+      .sort({ createdAt: -1 });
+      
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching your products', error });
+  }
+};

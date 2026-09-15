@@ -435,3 +435,31 @@ async function cancelMyOrder(orderId) {
 loadMyOrders();
 loadMySales();
 loadProfileFavorites();
+
+
+// =========================
+// Tab Switching System
+// =========================
+document.addEventListener('DOMContentLoaded', () => {
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.tab-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // 1. הסרת active מכל הטאבים
+      tabs.forEach(t => t.classList.remove('active'));
+      // 2. הוספת active לטאב שנלחץ
+      tab.classList.add('active');
+
+      // 3. הסתרת כל הפאנלים
+      panels.forEach(p => p.classList.add('hidden'));
+
+      // 4. הצגת הפאנל המתאים
+      const targetTab = tab.getAttribute('data-tab');
+      const targetPanel = document.getElementById(`tab-${targetTab}`);
+      if (targetPanel) {
+        targetPanel.classList.remove('hidden');
+      }
+    });
+  });
+});
