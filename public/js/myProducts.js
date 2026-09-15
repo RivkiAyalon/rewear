@@ -4,7 +4,8 @@ async function loadMyProducts() {
 
   try {
     // שליחת בקשה לשרת עם אסימון אימות (אם מחוברים)
-    const token = localStorage.getItem('token');
+    //const token = localStorage.getItem('token');
+    const token = localStorage.getItem('rewear_token') || localStorage.getItem('token');//שליחת הטוקן
     let res = await fetch('/api/products/my', {
       headers: {
         'Authorization': token ? `Bearer ${token}` : ''

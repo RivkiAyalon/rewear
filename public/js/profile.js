@@ -197,7 +197,8 @@ initProfile();
 // =========================
 
 async function profileApi(url, options = {}) {
-  const token = localStorage.getItem('rewear_token');
+  ///const token = localStorage.getItem('rewear_token');
+const token = (localStorage.getItem('rewear_token') || localStorage.getItem('token') || '').trim();
 
   const headers = {
     'Content-Type': 'application/json',
