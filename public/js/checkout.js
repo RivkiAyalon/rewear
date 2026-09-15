@@ -9,7 +9,7 @@ let currentUser = null;
 // API
 // =========================
 
-async function api(url, options = {}) {
+/*async function api(url, options = {}) {
 const token = localStorage.getItem('rewear_token');
   const headers = {
     'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ const token = localStorage.getItem('rewear_token');
   }
 
   return data;
-}
+}*/
 
 
 // =========================
