@@ -59,4 +59,6 @@ async function populateCities(selectId = 'shippingCity') {
 }
 
 
-populateCities();
+populateCities();               // עמוד התשלום
+populateCities('regCity');      // הרשמה
+populateCities('detCity');      // פרופיל
