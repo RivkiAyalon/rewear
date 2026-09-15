@@ -1,126 +1,437 @@
-// עמוד מוגן — מי שלא מחוברת מועברת להתחברות
-if (!requireAuth()) throw new Error('not authenticated');
+async function api(url, options = {}) {
+  const token = localStorage.getItem('rewear_token');
 
-// ===== טאבים =====
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
 
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(btn =>
-    btn.classList.toggle('active', btn.dataset.tab === tab)
-  );
-  document.querySelectorAll('.tab-panel').forEach(panel =>
-    panel.classList.toggle('hidden', panel.id !== `tab-${tab}`)
-  );
-  history.replaceState(null, '', `?tab=${tab}`);
-  if (tab === 'points') loadPoints();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Something went wrong');
+  }
+
+  return data;
 }
 
-document.querySelectorAll('.tab').forEach(btn => {
-  btn.onclick = () => switchTab(btn.dataset.tab);
-});
 
-// פתיחת הטאב לפי הכתובת — ה-navbar מפנה ל-?tab=sell וכו'
-const startTab = getParam('tab') || 'details';
-switchTab(startTab);
+// =========================
+// My Orders
+// =========================
 
-// ===== טעינת המשתמשת =====
-
-async function loadProfile() {
-  try {
-    // מביאים מהשרת ולא מ-localStorage, כדי שהנקודות יהיו מעודכנות
-    const user = await api('/api/auth/me');
-    localStorage.setItem('rewear_user', JSON.stringify(user));
-
-    document.getElementById('profileName').textContent   = user.name;
-    document.getElementById('profileMeta').textContent   = `${user.city || ''} · ${user.email}`;
-    document.getElementById('profileAvatar').textContent = user.name[0];
-    document.getElementById('profilePoints').textContent = user.points;
-
-    document.getElementById('detName').value  = user.name;
-    document.getElementById('detEmail').value = user.email;
-    document.getElementById('detCity').value  = user.city  || '';
-    document.getElementById('detPhone').value = user.phone || '';
-
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
-
-// ===== שמירת פרטים =====
-
-const saveBtn = document.getElementById('saveDetails');
-
-saveBtn.onclick = async () => {
-  document.getElementById('detError').classList.add('hidden');
-
-  const name  = document.getElementById('detName').value.trim();
-  const city  = document.getElementById('detCity').value.trim();
-  const phone = document.getElementById('detPhone').value.trim();
-
-  if (!name || !city || !phone) {
-    const el = document.getElementById('detError');
-    el.textContent = 'Please fill in all fields';
-    el.classList.remove('hidden');
-    return;
-  }
-
-  saveBtn.disabled = true;
-  saveBtn.textContent = 'Saving...';
+async function loadMyOrders() {
+  const container = document.getElementById('myOrders');
 
   try {
-    const user = await api('/api/auth/me', {
-      method: 'PUT',
-      body: JSON.stringify({ name, city, phone })
-    });
+    const orders = await api('/api/orders/my');
 
-    localStorage.setItem('rewear_user', JSON.stringify(user));
-    showToast('Your details were saved', 'success');
-    renderNavbar();      // מרענן את השם בתפריט
-    loadProfile();
+    container.innerHTML = '';
 
-  } catch (err) {
-    showToast(err.message, 'error');
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.textContent = 'Save changes';
-  }
-};
-
-// ===== נקודות =====
-
-async function loadPoints() {
-  const box = document.getElementById('ptsHistory');
-
-  try {
-    const data = await api('/api/auth/points');
-
-    document.getElementById('ptsBalance').textContent = data.balance;
-    document.getElementById('ptsEarned').textContent  = `+${data.earned}`;
-    document.getElementById('ptsSpent').textContent   = `−${data.spent}`;
-
-    if (!data.history.length) {
-      box.innerHTML = `<div class="empty">
-        <h3>No activity yet</h3>
-        <p>Sell your first item to start earning points.</p>
-      </div>`;
+    if (orders.length === 0) {
+      container.textContent = 'No orders yet.';
       return;
     }
 
-    box.innerHTML = `<div class="panel">${data.history.map(h => `
-      <div class="pts-row">
-        <div>
-          <strong>${h.title}</strong>
-          <div class="small muted">${h.type === 'earned' ? 'Sold' : 'Bought with points'}
-            · ${formatDate(h.date)}</div>
-        </div>
-        <div class="pts-amount ${h.type}">
-          ${h.type === 'earned' ? '+' : '−'}${h.amount}
-        </div>
-      </div>
-    `).join('')}</div>`;
+    orders.forEach(order => {
+      const product = order.productId;
+
+      const div = document.createElement('div');
+
+      div.innerHTML = `
+        <h3>${product?.title || 'Product'}</h3>
+        <p>Price: ${order.price} ₪</p>
+        <p>Payment: ${order.paymentMethod}</p>
+        <p>Status: ${order.status}</p>
+        <p>Date: ${new Date(order.createdAt).toLocaleDateString()}</p>
+        ${
+          order.status === 'completed'
+            ? `<button onclick="cancelOrder('${order._id}')">
+                 Cancel order
+               </button>`
+            : ''
+        }
+        <hr>
+      `;
+
+      container.appendChild(div);
+    });
 
   } catch (err) {
-    box.innerHTML = `<div class="empty"><h3>Could not load activity</h3></div>`;
+    container.textContent = err.message;
   }
 }
 
-loadProfile();
+
+// =========================
+// My Sales
+// =========================
+
+async function loadMySales() {
+  const container = document.getElementById('mySales');
+
+  try {
+    const sales = await api('/api/orders/sales');
+
+    container.innerHTML = '';
+
+    if (sales.length === 0) {
+      container.textContent = 'No sales yet.';
+      return;
+    }
+
+    sales.forEach(order => {
+      const product = order.productId;
+
+      const div = document.createElement('div');
+
+      div.innerHTML = `
+        <h3>${product?.title || 'Product'}</h3>
+        <p>Price: ${order.price} ₪</p>
+        <p>Points received: ${order.pointsEarned}</p>
+        <p>Status: ${order.status}</p>
+        <p>Date: ${new Date(order.createdAt).toLocaleDateString()}</p>
+        <hr>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    container.textContent = err.message;
+  }
+}
+
+
+// =========================
+// Favorites
+// =========================
+
+async function loadFavorites() {
+  const container = document.getElementById('favorites');
+
+  try {
+    const products = await api('/api/favorites');
+
+    container.innerHTML = '';
+
+    if (products.length === 0) {
+      container.textContent = 'No favorites yet.';
+      return;
+    }
+
+    products.forEach(product => {
+
+      const div = document.createElement('div');
+
+      div.innerHTML = `
+        <h3>${product.title}</h3>
+        <p>${product.price} ₪</p>
+        <p>Status: ${product.status}</p>
+        <hr>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    container.textContent = err.message;
+  }
+}
+
+
+// =========================
+// Cancel order
+// =========================
+
+async function cancelOrder(orderId) {
+
+  const confirmed = confirm(
+    'Are you sure you want to cancel this order?'
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+
+    await api(`/api/orders/${orderId}`, {
+      method: 'DELETE'
+    });
+
+    alert('Order cancelled successfully');
+
+    await loadMyOrders();
+
+  } catch (err) {
+
+    alert(err.message);
+
+  }
+}
+
+
+// =========================
+// Start
+// =========================
+
+async function initProfile() {
+  await loadMyOrders();
+  await loadMySales();
+  await loadFavorites();
+}
+
+initProfile();
+// =========================
+// Developer 4 - Orders & Favorites
+// =========================
+
+async function profileApi(url, options = {}) {
+  const token = localStorage.getItem('rewear_token');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Something went wrong');
+  }
+
+  return data;
+}
+
+
+// =========================
+// My Orders
+// =========================
+
+async function loadMyOrders() {
+
+  const container = document.getElementById('myOrders');
+
+  if (!container) return;
+
+  try {
+
+    const orders = await profileApi('/api/orders/my');
+
+    container.innerHTML = '';
+
+    if (orders.length === 0) {
+      container.innerHTML = '<p class="muted">No orders yet.</p>';
+      return;
+    }
+
+    orders.forEach(order => {
+
+      const product = order.productId;
+
+      const div = document.createElement('div');
+
+      div.className = 'panel';
+
+      div.innerHTML = `
+        <h3>${product?.title || 'Product'}</h3>
+
+        <p>Price: ${order.price} ₪</p>
+
+        <p>Payment method: ${order.paymentMethod}</p>
+
+        <p>Status: ${order.status}</p>
+
+        <p>
+          Date:
+          ${new Date(order.createdAt).toLocaleDateString()}
+        </p>
+
+        ${
+          order.status === 'completed'
+            ? `
+              <button
+                class="btn btn-primary"
+                onclick="cancelMyOrder('${order._id}')">
+                Cancel order
+              </button>
+            `
+            : ''
+        }
+      `;
+
+      container.appendChild(div);
+
+    });
+
+  } catch (err) {
+
+    container.innerHTML =
+      `<p class="field-error">${err.message}</p>`;
+
+  }
+}
+
+
+// =========================
+// My Sales
+// =========================
+
+async function loadMySales() {
+
+  const container = document.getElementById('mySales');
+
+  if (!container) return;
+
+  try {
+
+    const sales = await profileApi('/api/orders/sales');
+
+    container.innerHTML = '';
+
+    if (sales.length === 0) {
+      container.innerHTML = '<p class="muted">No sales yet.</p>';
+      return;
+    }
+
+    sales.forEach(order => {
+
+      const product = order.productId;
+
+      const div = document.createElement('div');
+
+      div.className = 'panel';
+
+      div.innerHTML = `
+        <h3>${product?.title || 'Product'}</h3>
+
+        <p>Price: ${order.price} ₪</p>
+
+        <p>Points received: ${order.pointsEarned}</p>
+
+        <p>Status: ${order.status}</p>
+
+        <p>
+          Date:
+          ${new Date(order.createdAt).toLocaleDateString()}
+        </p>
+      `;
+
+      container.appendChild(div);
+
+    });
+
+  } catch (err) {
+
+    container.innerHTML =
+      `<p class="field-error">${err.message}</p>`;
+
+  }
+}
+
+
+// =========================
+// Favorites
+// =========================
+
+async function loadProfileFavorites() {
+
+  const container = document.getElementById('favorites');
+
+  if (!container) return;
+
+  try {
+
+    const products = await profileApi('/api/favorites');
+
+    container.innerHTML = '';
+
+    if (products.length === 0) {
+      container.innerHTML =
+        '<p class="muted">No favorites yet.</p>';
+      return;
+    }
+
+    products.forEach(product => {
+
+      const div = document.createElement('div');
+
+      div.className = 'panel';
+
+      div.innerHTML = `
+        <h3>${product.title}</h3>
+
+        <p>Price: ${product.price} ₪</p>
+
+        <p>Status: ${product.status}</p>
+      `;
+
+      container.appendChild(div);
+
+    });
+
+  } catch (err) {
+
+    container.innerHTML =
+      `<p class="field-error">${err.message}</p>`;
+
+  }
+}
+
+
+// =========================
+// Cancel order
+// =========================
+
+async function cancelMyOrder(orderId) {
+
+  const confirmed = confirm(
+    'Are you sure you want to cancel this order?'
+  );
+
+  if (!confirmed) return;
+
+  try {
+
+    await profileApi(`/api/orders/${orderId}`, {
+      method: 'DELETE'
+    });
+
+    alert('Order cancelled successfully');
+
+    await loadMyOrders();
+
+  } catch (err) {
+
+    alert(err.message);
+
+  }
+}
+
+
+// =========================
+// Load Developer 4 data
+// =========================
+
+loadMyOrders();
+loadMySales();
+loadProfileFavorites();
