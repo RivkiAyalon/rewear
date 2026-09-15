@@ -11,20 +11,43 @@
   <div id="navbar"></div>
 
   <main class="container page">
-    <h1>Dashboard</h1>
+  <h1>Dashboard</h1>
 
-    <!-- ===== מפתחת 5 — כרטיסים וגרפים ===== -->
+  <div class="tabs">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="users">Users</button>
+    <button class="tab" data-tab="orders">Orders</button>
+    <button class="tab" data-tab="products">Products</button>
+    <button class="tab" data-tab="messages">Messages</button>
+  </div>
+
+  <!-- ===== מפתחת 5 — כרטיסים וגרפים ===== -->
+  <section id="tab-overview" class="tab-panel">
     <div id="adminStats"></div>
     <div id="adminCharts"></div>
+  </section>
 
-    <!-- ===== רבקי — משתמשות ===== -->
-    <h2 class="mt">Users</h2>
+  <!-- ===== רבקי — משתמשות ===== -->
+  <section id="tab-users" class="tab-panel hidden">
     <div id="usersTable"><div class="spinner"></div></div>
+  </section>
 
-    <!-- ===== מפתחת 5 — מוצרים והודעות ===== -->
-    <div id="adminProducts"></div>
-    <div id="adminMessages"></div>
-  </main>
+  <!-- ===== רבקי — הזמנות ===== -->
+  <section id="tab-orders" class="tab-panel hidden">
+    <p class="muted">Contact details for connecting buyers and sellers.</p>
+    <div id="ordersTable"><div class="spinner"></div></div>
+  </section>
+
+  <!-- ===== מפתחת 5 — מוצרים ===== -->
+  <section id="tab-products" class="tab-panel hidden">
+    <div id="adminProducts"><div class="empty"><h3>Coming soon</h3></div></div>
+  </section>
+
+  <!-- ===== מפתחת 5 — הודעות ===== -->
+  <section id="tab-messages" class="tab-panel hidden">
+    <div id="adminMessages"><div class="empty"><h3>Coming soon</h3></div></div>
+  </section>
+</main>
 
   <div id="footer"></div>
 

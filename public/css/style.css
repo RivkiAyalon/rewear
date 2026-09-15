@@ -777,3 +777,46 @@ img { max-width: 100%; display: block; }
   .checkout-page { padding: 24px 16px 60px; }
   #productSummary img { float: none; margin: 0 0 14px; }
 }
+
+
+/* ============ Admin orders ============ */
+.orders-table td { vertical-align: top; padding-top: 14px; }
+
+.order-row-product {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 200px;
+}
+.order-row-product img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+.order-row-product span {
+  display: block;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.contact-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 165px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.contact-cell strong { font-size: 14.5px; }
+.contact-link {
+  color: var(--pine);
+  text-decoration: none;
+}
+.contact-link:hover { text-decoration: underline; }
+.contact-city { color: var(--ink-faint); }
+
+.badge-card   { background: var(--pine);   color: #fff; }
+.badge-cancel { background: var(--danger); color: #fff; }

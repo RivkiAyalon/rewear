@@ -1,6 +1,32 @@
 // עמוד מנהלת בלבד
 if (!requireAdmin()) throw new Error('not admin');
 
+// ===== טאבים =====
+
+const loaded = {};   // כל טאב נטען פעם אחת בלבד
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.tab === tab)
+  );
+  document.querySelectorAll('.tab-panel').forEach(panel =>
+    panel.classList.toggle('hidden', panel.id !== `tab-${tab}`)
+  );
+  history.replaceState(null, '', `?tab=${tab}`);
+
+  if (loaded[tab]) return;
+  loaded[tab] = true;
+
+  if (tab === 'users')  loadUsers();
+  if (tab === 'orders') loadOrders();
+}
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.onclick = () => switchTab(btn.dataset.tab);
+});
+
+switchTab(getParam('tab') || 'overview');
+
 // ===== רבקי — ניהול משתמשות =====
 
 async function loadUsers() {
@@ -85,4 +111,103 @@ async function removeUser(id, name) {
   }
 }
 
-loadUsers();
+
+// ===== רבקי — טבלת הזמנות עם פרטי קשר =====
+
+const PAYMENT_LABEL = { card: 'Card', points: 'Points' };
+
+function contactCell(person, role) {
+  if (!person) return '<span class="muted">Deleted user</span>';
+
+  return `
+    <div class="contact-cell">
+      <strong>${person.name}</strong>
+      <a href="mailto:${person.email}" class="contact-link">${person.email}</a>
+      <a href="tel:${person.phone || ''}" class="contact-link">
+        ${person.phone || 'No phone'}
+      </a>
+      <span class="contact-city">${person.city || '—'}</span>
+    </div>
+  `;
+}
+
+async function loadOrders() {
+  const box = document.getElementById('ordersTable');
+
+  try {
+    const orders = await api('/api/admin/orders');
+
+    if (!orders.length) {
+      box.innerHTML = '<div class="empty"><h3>No orders yet</h3></div>';
+      return;
+    }
+
+    const revenue = orders
+      .filter(o => o.status === 'completed')
+      .reduce((sum, o) => sum + o.price, 0);
+
+    box.innerHTML = `
+      <p class="muted mb">
+        ${orders.length} orders · ${formatPrice(revenue)} total revenue
+      </p>
+
+      <div class="panel" style="overflow-x:auto">
+        <table class="table orders-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Buyer</th>
+              <th>Seller</th>
+              <th>Pickup</th>
+              <th>Payment</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map(o => `
+              <tr>
+                <td>
+                  <div class="order-row-product">
+                    <img src="${o.productId?.images?.[0] || ''}"
+                         alt="${o.productId?.title || ''}">
+                    <div>
+                      <span>${o.productId?.title || 'Deleted item'}</span>
+                      <div class="small muted">${formatPrice(o.price)}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <td>${contactCell(o.buyerId)}</td>
+                <td>${contactCell(o.sellerId)}</td>
+
+                <td class="small">
+                  <div><strong>From:</strong> ${o.productId?.city || '—'}</div>
+                  <div><strong>To:</strong> ${o.shippingCity || '—'}</div>
+                </td>
+
+                <td>
+                  <span class="badge ${o.paymentMethod === 'points'
+                      ? 'badge-points' : 'badge-card'}">
+                    ${PAYMENT_LABEL[o.paymentMethod] || o.paymentMethod}${
+                      o.cardLast4 ? ` ····${o.cardLast4}` : ''}
+                  </span>
+                </td>
+
+                <td class="small muted">${formatDate(o.createdAt)}</td>
+
+                <td>
+                  <span class="badge ${o.status === 'cancelled'
+                      ? 'badge-cancel' : ''}">${o.status}</span>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+  } catch (err) {
+    box.innerHTML = '<div class="empty"><h3>Could not load orders</h3></div>';
+  }
+}

@@ -69,3 +69,17 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.getOrders = async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .sort({ createdAt: -1 })
+      .populate('productId', 'title images city')
+      .populate('buyerId',  'name email phone city')
+      .populate('sellerId', 'name email phone city');
+
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

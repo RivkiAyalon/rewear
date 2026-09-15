@@ -9,5 +9,6 @@ router.use(auth, isAdmin);
 router.get('/users', ctrl.getUsers);
 router.put('/users/:id/role', ctrl.changeRole);
 router.delete('/users/:id', ctrl.deleteUser);
+router.get('/orders', ctrl.getOrders);
 
 module.exports = router;
