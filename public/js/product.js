@@ -97,21 +97,31 @@ async function loadProduct() {
     const favoriteBtn = document.getElementById('favoriteBtn');
 let isFavorite = false;
 
-// בודקים אם המוצר כבר במועדפים
-try {
-  const favorites = await api('/api/favorites');
+async function refreshProductFavorite() {
+  if (!getToken()) {
+    isFavorite = false;
+    favoriteBtn.textContent = '♡ Favorite';
+    return;
+  }
 
-  isFavorite = favorites.some(fav => fav._id === product._id);
+  try {
+    const favorites = await api('/api/favorites');
 
-  favoriteBtn.textContent = isFavorite
-    ? '♥ Favorited'
-    : '♡ Favorite';
+    isFavorite = favorites.some(
+      fav => fav._id === product._id
+    );
 
-} catch (err) {
-  console.log('Could not load favorites:', err.message);
+    favoriteBtn.textContent = isFavorite
+      ? '♥ Favorited'
+      : '♡ Favorite';
+
+  } catch (err) {
+    console.log('Could not load favorites:', err.message);
+  }
 }
 
-// הוספה / הסרה מהמועדפים
+await refreshProductFavorite();
+
 favoriteBtn.onclick = async () => {
   try {
     if (isFavorite) {
@@ -140,6 +150,10 @@ favoriteBtn.onclick = async () => {
     showToast(err.message, 'error');
   }
 };
+
+window.addEventListener('pageshow', () => {
+  refreshProductFavorite();
+});
 
     document.getElementById('buyBtn').onclick = () => {
       if (product.status !== 'sold') {
