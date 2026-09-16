@@ -17,8 +17,10 @@ function switchTab(tab) {
   if (loaded[tab]) return;
   loaded[tab] = true;
 
+  if (tab === 'overview') loadOverview();
   if (tab === 'users')  loadUsers();
   if (tab === 'orders') loadOrders();
+
 }
 
 document.querySelectorAll('.tab').forEach(btn => {
@@ -209,5 +211,95 @@ async function loadOrders() {
 
   } catch (err) {
     box.innerHTML = '<div class="empty"><h3>Could not load orders</h3></div>';
+  }
+}
+
+// ===== מפתחת 5 — סטטיסטיקות וגרפים =====
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun',
+                'Jul','Aug','Sep','Oct','Nov','Dec'];
+
+async function loadOverview() {
+  await loadStats();
+  await loadCharts();
+}
+
+async function loadStats() {
+  const box = document.getElementById('adminStats');
+
+  try {
+    const s = await api('/api/admin/stats');
+
+    box.innerHTML = `
+      <div class="stats-row">
+        <div class="panel stat-card">
+          <div class="stat-label">Users</div>
+          <div class="stat-value">${s.users}</div>
+        </div>
+        <div class="panel stat-card">
+          <div class="stat-label">Active items</div>
+          <div class="stat-value">${s.products}</div>
+        </div>
+        <div class="panel stat-card">
+          <div class="stat-label">Orders</div>
+          <div class="stat-value">${s.orders}</div>
+        </div>
+        <div class="panel stat-card">
+          <div class="stat-label">Total revenue</div>
+          <div class="stat-value clay">${formatPrice(s.revenue)}</div>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    box.innerHTML = '<div class="empty"><h3>Could not load stats</h3></div>';
+  }
+}
+
+async function loadCharts() {
+  try {
+    const [sales, sellers] = await Promise.all([
+      api('/api/admin/sales-by-month'),
+      api('/api/admin/top-sellers')
+    ]);
+
+    // גרף 1 — מכירות לפי חודש
+    new Chart(document.getElementById('salesChart'), {
+      type: 'bar',
+      data: {
+        labels: sales.map(d => `${MONTHS[d._id.month - 1]} ${d._id.year}`),
+        datasets: [{
+          data: sales.map(d => d.revenue),
+          backgroundColor: '#24453A',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    // גרף 2 — חמש המוכרות המובילות, אופקי
+    new Chart(document.getElementById('sellersChart'), {
+      type: 'bar',
+      data: {
+        labels: sellers.map(s => s.name),
+        datasets: [{
+          data: sellers.map(s => s.revenue),
+          backgroundColor: '#C9705C',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } }
+      }
+    });
+
+  } catch (err) {
+    showToast('Could not load charts', 'error');
   }
 }

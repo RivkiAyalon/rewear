@@ -820,3 +820,30 @@ img { max-width: 100%; display: block; }
 
 .badge-card   { background: var(--pine);   color: #fff; }
 .badge-cancel { background: var(--danger); color: #fff; }
+
+/* ============ Admin overview ============ */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.stat-card { padding: 20px 22px; }
+.stat-card .stat-value { font-size: 32px; }
+.stat-value.clay { color: var(--clay); }
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.charts-row .panel { min-width: 0; }
+.charts-row h3 { font-size: 17px; margin-bottom: 16px; }
+
+@media (max-width: 860px) {
+  .stats-row  { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr; }
+}
