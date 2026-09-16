@@ -32,27 +32,10 @@ const BRANDS = ['Zara', 'H&M', 'Mango', 'Castro', 'Nike', 'Adidas',
 const COLORS = ['Black', 'White', 'Blue', 'Beige', 'Green', 'Navy',
                 'Pink', 'Grey', 'Brown', 'Red', 'Cream', 'Olive'];
 
-// ---------- תמונות ----------
-// Unsplash מחזיר תמונה לפי מילת חיפוש, אז שמלה מקבלת
-// תמונת שמלה ולא תמונה אקראית.
-// המילים כאן מתאימות לשמות ה-type מ-categories.js
-const IMAGE_KEYWORDS = {
-  dresses: 'dress', skirts: 'skirt', tops: 'blouse', pants: 'trousers',
-  knitwear: 'sweater', jackets: 'coat', sets: 'outfit',
-  swimwear: 'swimsuit', sportswear: 'activewear',
-  shirts: 'mens-shirt', suits: 'blazer',
-  heels: 'high-heels', flats: 'flat-shoes', sneakers: 'sneakers',
-  boots: 'boots', sandals: 'sandals', formal: 'dress-shoes',
-  bags: 'handbag', jewelry: 'jewelry', belts: 'belt',
-  hair: 'hair-accessory', glasses: 'sunglasses', hats: 'hat',
-  girls: 'kids-clothing', boys: 'kids-clothing', baby: 'baby-clothes',
-  costumes: 'costume', girlsShoes: 'kids-shoes', boysShoes: 'kids-shoes',
-  other: 'fashion'
-};
+
 
 function imageFor(type, seed) {
-  const keyword = IMAGE_KEYWORDS[type] || 'fashion';
-  return `https://source.unsplash.com/600x600/?${keyword}&sig=${seed}`;
+  return `https://picsum.photos/seed/${type}${seed}/600/600`;
 }
 
 // ---------- users ----------
