@@ -20,6 +20,7 @@ function switchTab(tab) {
   if (tab === 'overview') loadOverview();
   if (tab === 'users')  loadUsers();
   if (tab === 'orders') loadOrders();
+    if (tab === 'products') loadProducts();
 
 }
 
@@ -303,3 +304,101 @@ async function loadCharts() {
     showToast('Could not load charts', 'error');
   }
 }
+
+// ===== מפתחת 5 — ניהול מוצרים =====
+
+let allProducts = [];
+
+async function loadProducts() {
+  const box = document.getElementById('adminProducts');
+
+  try {
+    allProducts = await api('/api/admin/products');
+    renderProducts();
+  } catch (err) {
+    box.innerHTML = '<div class="empty"><h3>Could not load products</h3></div>';
+  }
+}
+
+function renderProducts() {
+  const box    = document.getElementById('adminProducts');
+  const search = document.getElementById('productSearch').value.trim().toLowerCase();
+  const status = document.getElementById('productStatus').value;
+
+  // סינון בצד לקוח — הנתונים כבר כאן, אין טעם לפנות שוב לשרת
+  const list = allProducts.filter(p => {
+    if (status && p.status !== status) return false;
+    if (!search) return true;
+    return p.title.toLowerCase().includes(search) ||
+           (p.brand || '').toLowerCase().includes(search);
+  });
+
+  if (!list.length) {
+    box.innerHTML = '<div class="empty"><h3>No products found</h3></div>';
+    return;
+  }
+
+  box.innerHTML = `
+    <p class="muted mb">${list.length} of ${allProducts.length} products</p>
+
+    <div class="panel" style="overflow-x:auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Item</th><th>Category</th><th>Price</th>
+            <th>Seller</th><th>City</th><th>Views</th>
+            <th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(p => `
+            <tr>
+              <td>
+                <div class="order-row-product">
+                  <img src="${p.images?.[0] || ''}" alt="${p.title}">
+                  <div>
+                    <span>${p.title}</span>
+                    <div class="small muted">${p.brand || 'No brand'} · ${p.size}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="small">${p.gender} · ${p.type}</td>
+              <td>${formatPrice(p.price)}</td>
+              <td class="small">${p.sellerId?.name || '—'}</td>
+              <td class="small">${p.city || '—'}</td>
+              <td class="small muted">${p.views}</td>
+              <td>
+                <span class="badge ${p.status === 'sold' ? 'badge-sold' : ''}">
+                  ${p.status}
+                </span>
+              </td>
+              <td class="row-actions">
+                ${p.status === 'sold'
+                  ? '<span class="small muted">—</span>'
+                  : `<button class="btn btn-ghost btn-sm danger-link"
+                       onclick="removeProduct('${p._id}', '${p.title.replace(/'/g, "\\'")}')">
+                       Delete
+                     </button>`}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function removeProduct(id, title) {
+  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+
+  try {
+    await api(`/api/admin/products/${id}`, { method: 'DELETE' });
+    showToast('Product deleted', 'success');
+    loadProducts();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+document.getElementById('productSearch').oninput  = renderProducts;
+document.getElementById('productStatus').onchange = renderProducts;

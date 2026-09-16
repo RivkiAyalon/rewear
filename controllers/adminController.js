@@ -165,3 +165,35 @@ exports.getTopSellers = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// כל המוצרים במערכת — כולל שנמכרו, בניגוד ל-/api/products
+exports.getProducts = async (req, res) => {
+  try {
+    const products = await Product.find()
+      .sort({ createdAt: -1 })
+      .populate('sellerId', 'name email');
+
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // מוצר שנמכר לא נמחק — יש הזמנה שמצביעה עליו
+    if (product.status === 'sold') {
+      return res.status(400).json({
+        message: 'Sold items cannot be deleted'
+      });
+    }
+
+    await product.deleteOne();
+    res.json({ message: 'Product deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

@@ -51,8 +51,17 @@
 
   <!-- ===== מפתחת 5 — מוצרים ===== -->
   <section id="tab-products" class="tab-panel hidden">
-    <div id="adminProducts"><div class="empty"><h3>Coming soon</h3></div></div>
-  </section>
+  <div class="flex gap mb">
+    <input class="input" id="productSearch" type="search"
+           placeholder="Search by title or brand" style="max-width:280px">
+    <select class="select" id="productStatus" style="width:auto">
+      <option value="">All</option>
+      <option value="available">Available</option>
+      <option value="sold">Sold</option>
+    </select>
+  </div>
+  <div id="adminProducts"><div class="spinner"></div></div>
+</section>
 
   <!-- ===== מפתחת 5 — הודעות ===== -->
   <section id="tab-messages" class="tab-panel hidden">
