@@ -4,13 +4,12 @@ const productId = params.get('id');
 let product = null;
 let currentUser = null;
 
-
 // =========================
 // API
 // =========================
+async function api(url, options = {}) {
+  const token = localStorage.getItem('rewear_token');
 
-/*async function api(url, options = {}) {
-const token = localStorage.getItem('rewear_token');
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {})
@@ -32,15 +31,12 @@ const token = localStorage.getItem('rewear_token');
   }
 
   return data;
-}*/
-
+}
 
 // =========================
-// Luhn
+// Luhn - card validation
 // =========================
-
 function isValidCard(number) {
-
   const digits = number.replace(/\D/g, '');
 
   if (digits.length < 13 || digits.length > 19) {
@@ -51,7 +47,6 @@ function isValidCard(number) {
   let double = false;
 
   for (let i = digits.length - 1; i >= 0; i--) {
-
     let d = Number(digits[i]);
 
     if (double) {
@@ -69,13 +64,10 @@ function isValidCard(number) {
   return sum % 10 === 0;
 }
 
-
 // =========================
-// Expiry
+// Expiry validation
 // =========================
-
 function isValidExpiry(value) {
-
   const match = value.match(/^(\d{2})\/(\d{2})$/);
 
   if (!match) {
@@ -90,7 +82,6 @@ function isValidExpiry(value) {
   }
 
   const now = new Date();
-
   const currentYear = now.getFullYear() % 100;
   const currentMonth = now.getMonth() + 1;
 
@@ -105,13 +96,10 @@ function isValidExpiry(value) {
   return true;
 }
 
-
 // =========================
 // Load product
 // =========================
-
 async function loadProduct() {
-
   if (!productId) {
     throw new Error('Missing product ID');
   }
@@ -134,7 +122,7 @@ async function loadProduct() {
     product.title;
 
   document.getElementById('productPrice').textContent =
-    product.price;
+    `${product.price} ₪`;
 
   if (product.images && product.images.length > 0) {
     document.getElementById('productImage').src =
@@ -142,43 +130,78 @@ async function loadProduct() {
   }
 }
 
-
 // =========================
 // Load user
 // =========================
-
 async function loadUser() {
-
-  currentUser = await api('/api/auth/me');
-
   const pointsRadio =
     document.getElementById('pointsRadio');
 
   const pointsMessage =
     document.getElementById('pointsMessage');
 
-  if (currentUser.points >= product.price) {
+  try {
+    const data = await api('/api/auth/me');
 
-    pointsRadio.disabled = false;
+    // Support both { user: {...} } and direct {...}
+    currentUser = data.user || data;
 
-    pointsMessage.textContent =
-      ` (${currentUser.points} נקודות)`;
+    if (!currentUser) {
+      throw new Error('User information not found');
+    }
 
-  } else {
+    const userPoints =
+      Number(currentUser.points || 0);
+
+    const productPrice =
+      Number(product.price);
+
+    if (userPoints >= productPrice) {
+
+      pointsRadio.disabled = false;
+
+      pointsMessage.textContent =
+        ` (${userPoints} points available)`;
+
+    } else {
+
+      pointsRadio.disabled = true;
+
+      pointsMessage.textContent =
+        ` (You need ${productPrice - userPoints} more points)`;
+
+      document.querySelector(
+        'input[name="paymentMethod"][value="card"]'
+      ).checked = true;
+
+      document.getElementById(
+        'cardSection'
+      ).style.display = 'block';
+    }
+
+  } catch (err) {
+
+    console.error('Failed to load user:', err);
+
+    currentUser = null;
 
     pointsRadio.disabled = true;
 
     pointsMessage.textContent =
-      ` (You need ${product.price - currentUser.points} more points)`;
+      ' (Unable to load points)';
 
+    document.querySelector(
+      'input[name="paymentMethod"][value="card"]'
+    ).checked = true;
+
+    document.getElementById(
+      'cardSection'
+    ).style.display = 'block';
   }
 }
-
-
 // =========================
-// Payment method change
+// Payment method
 // =========================
-
 function setupPaymentMethods() {
 
   const radios =
@@ -193,11 +216,17 @@ function setupPaymentMethods() {
 
     radio.addEventListener('change', () => {
 
-      if (radio.value === 'card' && radio.checked) {
+      if (
+        radio.value === 'card' &&
+        radio.checked
+      ) {
         cardSection.style.display = 'block';
       }
 
-      if (radio.value === 'points' && radio.checked) {
+      if (
+        radio.value === 'points' &&
+        radio.checked
+      ) {
         cardSection.style.display = 'none';
       }
 
@@ -206,11 +235,9 @@ function setupPaymentMethods() {
   });
 }
 
-
 // =========================
 // Purchase
 // =========================
-
 async function purchase() {
 
   const message =
@@ -219,106 +246,128 @@ async function purchase() {
   message.textContent = '';
 
   try {
-
-    const paymentMethod =
+    const selectedPayment =
       document.querySelector(
         'input[name="paymentMethod"]:checked'
-      ).value;
+      );
 
-    const shippingCity =
-      document.getElementById('shippingCity').value;
-
-    if (!shippingCity) {
-      throw new Error('Please select a city');
+    if (!selectedPayment) {
+      throw new Error(
+        'Please select a payment method'
+      );
     }
 
+    const paymentMethod =
+      selectedPayment.value;
 
     // =====================
     // Points
     // =====================
-
     if (paymentMethod === 'points') {
 
-      if (currentUser.points < product.price) {
-        throw new Error('Not enough points');
+      const userPoints =
+        Number(currentUser?.points || 0);
+
+      const productPrice =
+        Number(product.price);
+
+      if (userPoints < productPrice) {
+
+        throw new Error(
+          `Not enough points. You need ${productPrice - userPoints} more points.`
+        );
+
       }
 
-      const result = await api('/api/orders', {
+      const result = await api(
+        '/api/orders',
+        {
+          method: 'POST',
 
-        method: 'POST',
-
-        body: JSON.stringify({
-          productId,
-          paymentMethod: 'points',
-          shippingCity
-        })
-
-      });
+          body: JSON.stringify({
+            productId,
+            paymentMethod: 'points'
+          })
+        }
+      );
 
       message.textContent =
-        'הרכישה בוצעה בהצלחה!';
+        'Purchase completed successfully! The seller will be contacted through the website soon with the pickup details.';
 
       console.log(result);
 
       return;
     }
 
-
     // =====================
     // Card
     // =====================
 
     const cardHolder =
-      document.getElementById('cardHolder').value.trim();
+      document.getElementById(
+        'cardHolder'
+      ).value.trim();
 
     const cardNumber =
-      document.getElementById('cardNumber').value;
+      document.getElementById(
+        'cardNumber'
+      ).value;
 
     const expiry =
-      document.getElementById('expiry').value.trim();
+      document.getElementById(
+        'expiry'
+      ).value.trim();
 
     const cvv =
-      document.getElementById('cvv').value.trim();
-
+      document.getElementById(
+        'cvv'
+      ).value.trim();
 
     if (!cardHolder) {
-      throw new Error('Card holder name is required');
+      throw new Error(
+        'Card holder name is required'
+      );
     }
 
     if (!isValidCard(cardNumber)) {
-      throw new Error('Invalid card number');
+      throw new Error(
+        'Invalid card number'
+      );
     }
 
     if (!isValidExpiry(expiry)) {
-      throw new Error('Invalid expiry date');
+      throw new Error(
+        'Invalid expiry date. Use MM/YY'
+      );
     }
 
     if (!/^\d{3}$/.test(cvv)) {
-      throw new Error('CVV must contain 3 digits');
+      throw new Error(
+        'CVV must contain 3 digits'
+      );
     }
 
-
-    // CRITICAL:
-    // Full card number is NEVER sent.
+    // Only the last 4 digits are sent.
     const last4 =
-      cardNumber.replace(/\D/g, '').slice(-4);
+      cardNumber
+        .replace(/\D/g, '')
+        .slice(-4);
 
+    const result = await api(
+      '/api/orders',
+      {
+        method: 'POST',
 
-    const result = await api('/api/orders', {
-
-      method: 'POST',
-
-      body: JSON.stringify({
-        productId,
-        paymentMethod: 'card',
-        cardLast4: last4,
-        shippingCity
-      })
-
-    });
+        body: JSON.stringify({
+          productId,
+          paymentMethod: 'card',
+          cardLast4: last4
+        })
+      }
+    );
 
     message.textContent =
-      'הרכישה בוצעה בהצלחה!';
+      'Purchase completed successfully! The seller will be contacted through the website soon with the pickup details.';
 
     console.log(result);
 
@@ -331,16 +380,15 @@ async function purchase() {
   }
 }
 
-
 // =========================
 // Start
 // =========================
-
 async function init() {
 
   try {
 
     await loadProduct();
+
     await loadUser();
 
     setupPaymentMethods();
@@ -349,15 +397,31 @@ async function init() {
 
     console.error(err);
 
-    document.getElementById('checkoutMessage')
-      .textContent = err.message;
+    const message =
+      document.getElementById(
+        'checkoutMessage'
+      );
+
+    if (message) {
+      message.textContent =
+        err.message;
+    }
   }
 }
 
+// =========================
+// Pay button
+// =========================
+const payButton =
+  document.getElementById('payButton');
 
-document
-  .getElementById('payButton')
-  .addEventListener('click', purchase);
+if (payButton) {
 
+  payButton.addEventListener(
+    'click',
+    purchase
+  );
+
+}
 
 init();

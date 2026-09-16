@@ -1,118 +1,463 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>My profile — ReWear</title>
+
   <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
 
   <div id="navbar"></div>
 
   <main class="container page">
 
+    <!-- =========================
+         Profile header
+         ========================= -->
+
     <div class="profile-head">
-      <div class="profile-avatar" id="profileAvatar"></div>
+
+      <div
+        class="profile-avatar"
+        id="profileAvatar">
+      </div>
+
       <div>
+
         <h1 id="profileName">...</h1>
-        <p class="muted" id="profileMeta"></p>
+
+        <p
+          class="muted"
+          id="profileMeta">
+        </p>
+
       </div>
+
       <div class="points-box">
-        <span class="points-value" id="profilePoints">0</span>
-        <span class="points-label">points</span>
+
+        <span
+          class="points-value"
+          id="profilePoints">
+          0
+        </span>
+
+        <span class="points-label">
+          points
+        </span>
+
       </div>
+
     </div>
+
+
+    <!-- =========================
+         Tabs
+         ========================= -->
 
     <div class="tabs">
-      <button class="tab active" data-tab="details">My details</button>
-      <button class="tab" data-tab="points">My points</button>
-      <button class="tab" data-tab="items">My items</button>
-      <button class="tab" data-tab="sell">Sell an item</button>
-      <button class="tab" data-tab="favorites">Favorites</button>
-      <button class="tab" data-tab="orders">Orders</button>
+
+      <button
+        class="tab active"
+        data-tab="details">
+        My details
+      </button>
+
+      <button
+        class="tab"
+        data-tab="points">
+        My points
+      </button>
+
+      <button
+        class="tab"
+        data-tab="items">
+        My items
+      </button>
+
+      <button
+        class="tab"
+        data-tab="sell">
+        Sell an item
+      </button>
+
+      <button
+        class="tab"
+        data-tab="favorites">
+        Favorites
+      </button>
+
+      <button
+        class="tab"
+        data-tab="orders">
+        Orders
+      </button>
+
     </div>
 
-    <!-- ===== רבקי — פרטים אישיים ===== -->
-    <section id="tab-details" class="tab-panel">
-      <div class="panel" style="max-width:460px">
+
+    <!-- =========================
+         My details
+         ========================= -->
+
+    <section
+      id="tab-details"
+      class="tab-panel">
+
+      <div
+        class="panel"
+        style="max-width:460px">
+
         <div class="field">
-          <label for="detName">Full name</label>
-          <input class="input" id="detName">
+
+          <label for="detName">
+            Full name
+          </label>
+
+          <input
+            class="input"
+            id="detName">
+
         </div>
+
+
         <div class="field">
-          <label for="detEmail">Email</label>
-          <input class="input" id="detEmail" disabled>
-          <div class="field-hint">Email cannot be changed</div>
+
+          <label for="detEmail">
+            Email
+          </label>
+
+          <input
+            class="input"
+            id="detEmail"
+            disabled>
+
+          <div class="field-hint">
+            Email cannot be changed
+          </div>
+
         </div>
+
+
         <div class="field">
-          <label for="detCity">City</label>
-        <select class="select" id="detCity">
-         <option value="">Select a city</option>
-        </select>
+
+          <label for="detCity">
+            City
+          </label>
+
+          <select
+            class="select"
+            id="detCity">
+
+            <option value="">
+              Select a city
+            </option>
+
+          </select>
+
         </div>
+
+
         <div class="field">
-          <label for="detPhone">Phone</label>
-          <input class="input" id="detPhone">
+
+          <label for="detPhone">
+            Phone
+          </label>
+
+          <input
+            class="input"
+            id="detPhone">
+
         </div>
-        <p id="detError" class="field-error hidden"></p>
-        <button class="btn btn-primary" id="saveDetails">Save changes</button>
+
+
+        <p
+          id="detError"
+          class="field-error hidden">
+        </p>
+
+
+        <button
+          class="btn btn-primary"
+          id="saveDetails">
+          Save changes
+        </button>
+
       </div>
+
     </section>
 
-    <!-- ===== רבקי — נקודות ===== -->
-<section id="tab-points" class="tab-panel hidden">
-  <div class="points-summary">
-    <div class="panel">
-      <div class="stat-label">Current balance</div>
-      <div class="stat-value" id="ptsBalance">0</div>
-    </div>
-    <div class="panel">
-      <div class="stat-label">Earned from sales</div>
-      <div class="stat-value" id="ptsEarned">0</div>
-    </div>
-    <div class="panel">
-      <div class="stat-label">Spent on purchases</div>
-      <div class="stat-value" id="ptsSpent">0</div>
-    </div>
-  </div>
 
-  <div class="panel mt">
-    <h3>How points work</h3>
-    <p class="muted">Every item you sell earns you points equal to its price.
-       One point equals one shekel, and you can use points to buy anything on ReWear.</p>
-  </div>
+    <!-- =========================
+         My points
+         ========================= -->
 
-  <h3 class="mt">Activity</h3>
-  <div id="ptsHistory"><div class="spinner"></div></div>
-</section>
+    <section
+      id="tab-points"
+      class="tab-panel hidden">
 
-    <!-- ===== מפתחת 2 — המוצרים שלי ===== -->
-    <section id="tab-items" class="tab-panel hidden">
-      <div class="empty"><h3>Coming soon</h3></div>
+      <div class="points-summary">
+
+        <div class="panel">
+
+          <div class="stat-label">
+            Current balance
+          </div>
+
+          <div
+            class="stat-value"
+            id="ptsBalance">
+            0
+          </div>
+
+        </div>
+
+
+        <div class="panel">
+
+          <div class="stat-label">
+            Earned from sales
+          </div>
+
+          <div
+            class="stat-value"
+            id="ptsEarned">
+            0
+          </div>
+
+        </div>
+
+
+        <div class="panel">
+
+          <div class="stat-label">
+            Spent on purchases
+          </div>
+
+          <div
+            class="stat-value"
+            id="ptsSpent">
+            0
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="panel mt">
+
+        <h3>
+          How points work
+        </h3>
+
+        <p class="muted">
+          Every item you sell earns you points equal to its price.
+          One point equals one shekel, and you can use points to buy
+          anything on ReWear.
+        </p>
+
+      </div>
+
+
+      <h3 class="mt">
+        Activity
+      </h3>
+
+      <div id="ptsHistory">
+
+        <div class="spinner"></div>
+
+      </div>
+
     </section>
 
-    <!-- ===== מפתחת 2 — טופס פרסום ===== -->
-    <section id="tab-sell" class="tab-panel hidden">
-      <div class="empty"><h3>Coming soon</h3></div>
+
+    <!-- =========================
+         My items
+         ========================= -->
+
+    <section
+      id="tab-items"
+      class="tab-panel hidden">
+
+      <div class="panel">
+        <h2>My Products</h2>
+        <div id="my-products-container">
+          <!-- כאן יתרנדרו המוצרים של המשתמש בעזרת myProducts.js -->
+        </div>
+      </div>
+
+    </section>
+    
+
+
+    <!-- =========================
+         Sell an item
+         ========================= -->
+
+    <section
+      id="tab-sell"
+      class="tab-panel hidden">
+
+      <div class="panel" style="max-width: 600px;">
+        <h2>Publish New Item</h2>
+        
+        <form id="publish-form">
+          <div class="field">
+            <label for="title">Title</label>
+            <input class="input" id="title" required placeholder="e.g. Vintage Denim Jacket">
+          </div>
+
+          <div class="field">
+            <label for="gender">Gender</label>
+            <select class="select" id="gender" required>
+              <option value="">Select gender</option>
+              <option value="women">Women</option>
+              <option value="men">Men</option>
+              <option value="kids">Kids</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="category">Category</label>
+            <select class="select" id="category" disabled required>
+              <option value="">Select category</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="type">Item Type</label>
+            <select class="select" id="type" disabled required>
+              <option value="">Select type</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="size">Size</label>
+            <select class="select" id="size" disabled required>
+              <option value="">Select size</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="price">Price (Points)</label>
+            <input type="number" class="input" id="price" min="1" required placeholder="e.g. 50">
+          </div>
+
+          <div class="field">
+            <label for="description">Description</label>
+
+            <textarea class="input" id="description" rows="3" placeholder="Describe condition, brand, style..."></textarea>
+          </div>
+
+          <div class="field">
+            <label>Images (up to 4)</label>
+            <input type="file" id="image-upload" class="input" multiple accept="image/*">
+            <div id="image-preview" style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary mt">Publish Item</button>
+        </form>
+      </div>
+
     </section>
 
-    <!-- ===== מפתחת 4 — מועדפים ===== -->
-    <section id="tab-favorites" class="tab-panel hidden">
-      <div class="empty"><h3>Coming soon</h3></div>
+
+    <!-- =========================
+         Favorites - Developer 4
+         ========================= -->
+
+    <section
+      id="tab-favorites"
+      class="tab-panel hidden">
+
+      <div class="panel">
+
+        <h2>
+          My Favorites
+        </h2>
+
+        <div id="favorites">
+
+          <div class="spinner"></div>
+
+        </div>
+
+      </div>
+
     </section>
 
-    <!-- ===== מפתחת 4 — הזמנות ומכירות ===== -->
-    <section id="tab-orders" class="tab-panel hidden">
-      <div class="empty"><h3>Coming soon</h3></div>
+
+    <!-- =========================
+         Orders & Sales - Developer 4
+         ========================= -->
+
+    <section
+      id="tab-orders"
+      class="tab-panel hidden">
+
+
+      <!-- My Orders -->
+
+      <div class="panel">
+
+        <h2>
+          My Orders
+        </h2>
+
+        <div id="myOrders">
+
+          <div class="spinner"></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- My Sales -->
+
+      <div class="panel mt">
+
+        <h2>
+          My Sales
+        </h2>
+
+        <div id="mySales">
+
+          <div class="spinner"></div>
+
+        </div>
+
+      </div>
+
     </section>
 
   </main>
 
+
   <div id="footer"></div>
 
+
+  <!-- =========================
+       JavaScript
+       ========================= -->
+
   <script src="/js/common.js"></script>
+
   <script src="/js/cities.js"></script>
+
   <script src="/js/profile.js"></script>
+
+  <script src="/js/categories.js"></script>
+  <script src="/js/upload.js"></script>
+  <script src="/js/products.js"></script>
+  <script src="/js/myProducts.js"></script>
+
 </body>
+
 </html>

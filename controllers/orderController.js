@@ -122,3 +122,55 @@ exports.getMySales = async (req, res) => {
     });
   }
 };
+exports.cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      buyerId: req.user.id,
+      status: 'completed'
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        message: 'Order not found or already cancelled'
+      });
+    }
+
+    // מחזירים את המוצר למכירה
+    await Product.findByIdAndUpdate(
+      order.productId,
+      { status: 'available' }
+    );
+
+    // מחזירים לקונה את הנקודות רק אם שילם בנקודות
+    if (order.paymentMethod === 'points') {
+      await User.findByIdAndUpdate(
+        order.buyerId,
+        { $inc: { points: order.price } }
+      );
+    }
+
+    // מורידים מהמוכרת את הנקודות שקיבלה
+    await User.findByIdAndUpdate(
+      order.sellerId,
+      { $inc: { points: -order.pointsEarned } }
+    );
+
+    // מסמנים את ההזמנה כמבוטלת
+    order.status = 'cancelled';
+    await order.save();
+
+    const buyer = await User.findById(order.buyerId);
+
+    res.json({
+      message: 'Order cancelled successfully',
+      order,
+      points: buyer.points
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message
+    });
+  }
+};

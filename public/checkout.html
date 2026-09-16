@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
 
 <body>
 
-    <div id="navbar"></div>
+  <div id="navbar"></div>
 
   <main class="checkout-page">
 
@@ -21,7 +22,7 @@
       <strong>Demo mode — no real payment is processed.</strong>
     </p>
 
-    <!-- פרטי המוצר -->
+    <!-- Product summary -->
     <section id="productSummary">
 
       <h2>סיכום הפריט</h2>
@@ -35,29 +36,16 @@
 
       <h3 id="productTitle"></h3>
 
-      <p>
-        מחיר:
-        <span id="productPrice"></span> ₪
-      </p>
+<p>
+  מחיר:
+  <strong>
+    <span id="productPrice"></span>
+  </strong>
+</p>
 
     </section>
 
-    <!-- עיר משלוח -->
-    <section>
-
-      <h2>פרטי משלוח</h2>
-
-      <label for="shippingCity">
-        עיר:
-      </label>
-
-      <select id="shippingCity">
-        <option value="">בחרי עיר</option>
-      </select>
-
-    </section>
-
-    <!-- אמצעי תשלום -->
+    <!-- Payment method -->
     <section>
 
       <h2>אמצעי תשלום</h2>
@@ -91,7 +79,7 @@
 
     </section>
 
-    <!-- פרטי כרטיס -->
+    <!-- Card details -->
     <section id="cardSection">
 
       <h2>פרטי כרטיס</h2>
@@ -157,12 +145,11 @@
 
   </main>
 
-    <div id="footer"></div>
+  <div id="footer"></div>
 
-    
   <script src="/js/common.js"></script>
-  <script src="/js/cities.js"></script>
   <script src="/js/checkout.js"></script>
 
 </body>
+
 </html>

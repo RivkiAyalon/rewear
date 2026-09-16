@@ -2,7 +2,6 @@ const Favorite = require('../models/Favorite');
 
 exports.addFavorite = async (req, res) => {
   try {
-    console.log('ADD FAVORITE:', req.user.id, req.body.productId);
     const fav = await Favorite.create({
       userId: req.user.id,
       productId: req.body.productId
