@@ -14,14 +14,10 @@ document.getElementById('contact-form').addEventListener('submit', async (event)
 
   try {
     // שולחים את ההודעה לשרת דרך ה-API.
-    const response = await api('/api/messages', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to send message');
-    }
+    await api('/api/messages', {
+  method: 'POST',
+  body: JSON.stringify(data)
+});
 
     event.target.reset();
 
