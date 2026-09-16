@@ -139,10 +139,3 @@ async function editProduct(productId) {
 }
 
 
-// נטען פעם אחת, כשנכנסים לטאב
-document.querySelectorAll('.tab[data-tab="items"]').forEach(tab => {
-  tab.addEventListener('click', loadMyProducts);
-});
-
-// ואם הגיעו ישירות ל-?tab=items
-if (getParam('tab') === 'items') loadMyProducts();

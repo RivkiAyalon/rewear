@@ -45,7 +45,7 @@ async function loadUsers() {
         <table class="table">
           <thead>
             <tr>
-              <th>Name</th><th>Email</th><th>City</th>
+              <th>Name</th><th>Email</th><th>Phone</th><th>City</th>
               <th>Points</th><th>Items</th><th>Orders</th>
               <th>Role</th><th></th>
             </tr>
@@ -55,6 +55,7 @@ async function loadUsers() {
               <tr>
                 <td><strong>${u.name}</strong></td>
                 <td class="small muted">${u.email}</td>
+                <td class="small">${u.phone || '—'}</td>
                 <td class="small">${u.city || '—'}</td>
                 <td>${u.points}</td>
                 <td>${u.products}</td>
@@ -162,7 +163,7 @@ async function loadOrders() {
               <th>Item</th>
               <th>Buyer</th>
               <th>Seller</th>
-              <th>Pickup</th>
+              <th>Item location</th>
               <th>Payment</th>
               <th>Date</th>
               <th>Status</th>
@@ -185,10 +186,7 @@ async function loadOrders() {
                 <td>${contactCell(o.buyerId)}</td>
                 <td>${contactCell(o.sellerId)}</td>
 
-                <td class="small">
-                  <div><strong>From:</strong> ${o.productId?.city || '—'}</div>
-                  <div><strong>To:</strong> ${o.shippingCity || '—'}</div>
-                </td>
+                <td class="small">${o.productId?.city || '—'}</td>
 
                 <td>
                   <span class="badge ${o.paymentMethod === 'points'

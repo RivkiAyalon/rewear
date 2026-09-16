@@ -24,7 +24,7 @@ function logout() {
 function requireAuth() {
   if (!getToken()) {
     window.location.href = '/login.html?redirect=' +
-      encodeURIComponent(window.location.pathname);
+            encodeURIComponent(window.location.pathname + window.location.search);
     return false;
   }
   return true;

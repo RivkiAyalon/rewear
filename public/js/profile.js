@@ -1,466 +1,314 @@
-async function api(url, options = {}) {
-  const token = localStorage.getItem('rewear_token');
+// עמוד מוגן — מי שלא מחוברת מועברת להתחברות
+if (!requireAuth()) throw new Error('not authenticated');
 
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(options.headers || {})
-  };
+// ============================================
+// טאבים
+// ============================================
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+function switchProfileTab(tab) {
+  document.querySelectorAll('.tab').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.tab === tab)
+  );
+  document.querySelectorAll('.tab-panel').forEach(panel =>
+    panel.classList.toggle('hidden', panel.id !== `tab-${tab}`)
+  );
+  history.replaceState(null, '', `?tab=${tab}`);
+
+  // טוענים את התוכן רק כשנכנסים לטאב
+  if (tab === 'points')    loadPoints();
+  if (tab === 'items')     loadMyProducts();
+  if (tab === 'favorites') loadFavorites();
+  if (tab === 'orders')    { loadMyOrders(); loadMySales(); }
+}
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.onclick = () => switchProfileTab(btn.dataset.tab);
+});
+
+// פותחים את הטאב לפי הכתובת — ה-navbar מפנה ל-?tab=sell וכו'
+switchProfileTab(getParam('tab') || 'details');
+
+
+// ============================================
+// טעינת פרטי המשתמשת
+// ============================================
+
+async function loadProfile() {
+  try {
+    // מביאים מהשרת ולא מ-localStorage, כדי שהנקודות יהיו מעודכנות
+    const user = await api('/api/auth/me');
+    localStorage.setItem('rewear_user', JSON.stringify(user));
+
+    document.getElementById('profileName').textContent   = user.name;
+    document.getElementById('profileMeta').textContent   = `${user.city || ''} · ${user.email}`;
+    document.getElementById('profileAvatar').textContent = user.name[0];
+    document.getElementById('profilePoints').textContent = user.points;
+
+    document.getElementById('detName').value  = user.name;
+    document.getElementById('detEmail').value = user.email;
+    document.getElementById('detPhone').value = user.phone || '';
+
+    // העיר היא select שנטען מ-API, אז שומרים את הערך
+    // ב-dataset כדי ש-populateCities תחזיר אותו כשתסיים
+    const citySelect = document.getElementById('detCity');
+    citySelect.dataset.value = user.city || '';
+    citySelect.value = user.city || '';
+
+        // אם הרשימה עדיין לא נטענה, זה יציב את הערך כשהיא תסתיים
+    if (!citySelect.dataset.filled) populateCities('detCity');
+
+  } catch (err) {
+    showToast(err.message, 'error');
   }
-
-  const response = await fetch(url, {
-    ...options,
-    headers
-  });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
-  }
-
-  return data;
 }
 
 
-// =========================
-// My Orders
-// =========================
+// ============================================
+// שמירת פרטים
+// ============================================
 
-async function loadMyOrders() {
-  const container = document.getElementById('myOrders');
+const saveBtn = document.getElementById('saveDetails');
+
+saveBtn.onclick = async () => {
+  const errEl = document.getElementById('detError');
+  errEl.classList.add('hidden');
+
+  const name  = document.getElementById('detName').value.trim();
+  const city  = document.getElementById('detCity').value.trim();
+  const phone = document.getElementById('detPhone').value.trim();
+
+  if (!name || !city || !phone) {
+    errEl.textContent = 'Please fill in all fields';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
 
   try {
-    const orders = await api('/api/orders/my');
+    const user = await api('/api/auth/me', {
+      method: 'PUT',
+      body: JSON.stringify({ name, city, phone })
+    });
 
-    container.innerHTML = '';
+    localStorage.setItem('rewear_user', JSON.stringify(user));
+    showToast('Your details were saved', 'success');
+    renderNavbar();
+    loadProfile();
 
-    if (orders.length === 0) {
-      container.textContent = 'No orders yet.';
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save changes';
+  }
+};
+
+
+// ============================================
+// נקודות
+// ============================================
+
+async function loadPoints() {
+  const box = document.getElementById('ptsHistory');
+
+  try {
+    const data = await api('/api/auth/points');
+
+    document.getElementById('ptsBalance').textContent = data.balance;
+    document.getElementById('ptsEarned').textContent  = `+${data.earned}`;
+    document.getElementById('ptsSpent').textContent   = `−${data.spent}`;
+
+    if (!data.history.length) {
+      box.innerHTML = `<div class="empty">
+        <h3>No activity yet</h3>
+        <p>Sell your first item to start earning points.</p>
+      </div>`;
       return;
     }
 
-    orders.forEach(order => {
-      const product = order.productId;
-
-      const div = document.createElement('div');
-
-      div.innerHTML = `
-        <h3>${product?.title || 'Product'}</h3>
-        <p>Price: ${order.price} ₪</p>
-        <p>Payment: ${order.paymentMethod}</p>
-        <p>Status: ${order.status}</p>
-        <p>Date: ${new Date(order.createdAt).toLocaleDateString()}</p>
-        ${
-          order.status === 'completed'
-            ? `<button onclick="cancelOrder('${order._id}')">
-                 Cancel order
-               </button>`
-            : ''
-        }
-        <hr>
-      `;
-
-      container.appendChild(div);
-    });
+    box.innerHTML = `<div class="panel">${data.history.map(h => `
+      <div class="pts-row">
+        <div>
+          <strong>${h.title}</strong>
+          <div class="small muted">${h.type === 'earned' ? 'Sold' : 'Bought with points'}
+            · ${formatDate(h.date)}</div>
+        </div>
+        <div class="pts-amount ${h.type}">
+          ${h.type === 'earned' ? '+' : '−'}${h.amount}
+        </div>
+      </div>
+    `).join('')}</div>`;
 
   } catch (err) {
-    container.textContent = err.message;
+    box.innerHTML = `<div class="empty"><h3>Could not load activity</h3></div>`;
   }
 }
 
 
-// =========================
-// My Sales
-// =========================
-
-async function loadMySales() {
-  const container = document.getElementById('mySales');
-
-  try {
-    const sales = await api('/api/orders/sales');
-
-    container.innerHTML = '';
-
-    if (sales.length === 0) {
-      container.textContent = 'No sales yet.';
-      return;
-    }
-
-    sales.forEach(order => {
-      const product = order.productId;
-
-      const div = document.createElement('div');
-
-      div.innerHTML = `
-        <h3>${product?.title || 'Product'}</h3>
-        <p>Price: ${order.price} ₪</p>
-        <p>Points received: ${order.pointsEarned}</p>
-        <p>Status: ${order.status}</p>
-        <p>Date: ${new Date(order.createdAt).toLocaleDateString()}</p>
-        <hr>
-      `;
-
-      container.appendChild(div);
-    });
-
-  } catch (err) {
-    container.textContent = err.message;
-  }
-}
-
-
-// =========================
-// Favorites
-// =========================
+// ============================================
+// מפתחת 4 — מועדפים
+// ============================================
 
 async function loadFavorites() {
-  const container = document.getElementById('favorites');
+  const box = document.getElementById('favorites');
+  if (!box) return;
+
+  box.innerHTML = '<div class="spinner"></div>';
 
   try {
     const products = await api('/api/favorites');
 
-    container.innerHTML = '';
-
-    if (products.length === 0) {
-      container.textContent = 'No favorites yet.';
+    if (!products.length) {
+      box.innerHTML = `<div class="empty">
+        <h3>No favorites yet</h3>
+        <p>Tap the heart on any item to save it here.</p>
+      </div>`;
       return;
     }
 
-    products.forEach(product => {
+    box.innerHTML = `
+      <div class="grid">
+        ${products.map(p => `
+          <div class="card">
+            <a href="/product.html?id=${p._id}">
+              <div class="card-media">
+                <img src="${p.images?.[0] || ''}" alt="${p.title}">
+                ${p.status === 'sold'
+                  ? '<span class="badge badge-sold card-fav">Sold</span>' : ''}
+              </div>
+            </a>
+            <div class="card-body">
+              <div class="card-brand">${p.brand || ''}</div>
+              <div class="card-title">${p.title}</div>
+              <div class="card-meta">${p.size} · ${p.condition}</div>
+              <div class="card-price">${formatPrice(p.price)}</div>
 
-      const div = document.createElement('div');
-
-      div.innerHTML = `
-        <h3>${product.title}</h3>
-        <p>${product.price} ₪</p>
-        <p>Status: ${product.status}</p>
-        <hr>
-      `;
-
-      container.appendChild(div);
-    });
+              <div class="flex gap-sm mt">
+                ${p.status === 'sold' ? '' : `
+                  <a class="btn btn-primary btn-sm"
+                     href="/checkout.html?id=${p._id}">Buy now</a>
+                `}
+                <button class="btn btn-ghost btn-sm danger-link"
+                        onclick="removeFavorite('${p._id}')">Remove</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
 
   } catch (err) {
-    container.textContent = err.message;
+    box.innerHTML = `<div class="empty"><h3>${err.message}</h3></div>`;
   }
 }
 
-
-// =========================
-// Cancel order
-// =========================
-
-async function cancelOrder(orderId) {
-
-  const confirmed = confirm(
-    'Are you sure you want to cancel this order?'
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
+async function removeFavorite(productId) {
   try {
-
-    await api(`/api/orders/${orderId}`, {
-      method: 'DELETE'
-    });
-
-    alert('Order cancelled successfully');
-
-    await loadMyOrders();
-
+    await api(`/api/favorites/${productId}`, { method: 'DELETE' });
+    showToast('Removed from favorites', 'success');
+    loadFavorites();
   } catch (err) {
-
-    alert(err.message);
-
+    showToast(err.message, 'error');
   }
 }
 
 
-// =========================
-// Start
-// =========================
-
-async function initProfile() {
-  await loadMyOrders();
-  await loadMySales();
-  await loadFavorites();
-}
-
-initProfile();
-// =========================
-// Developer 4 - Orders & Favorites
-// =========================
-
-async function profileApi(url, options = {}) {
-  ///const token = localStorage.getItem('rewear_token');
-const token = (localStorage.getItem('rewear_token') || localStorage.getItem('token') || '').trim();
-
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(options.headers || {})
-  };
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers
-  });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
-  }
-
-  return data;
-}
-
-
-// =========================
-// My Orders
-// =========================
+// ============================================
+// מפתחת 4 — הזמנות
+// ============================================
 
 async function loadMyOrders() {
+  const box = document.getElementById('myOrders');
+  if (!box) return;
 
-  const container = document.getElementById('myOrders');
-
-  if (!container) return;
+  box.innerHTML = '<div class="spinner"></div>';
 
   try {
+    const orders = await api('/api/orders/my');
 
-    const orders = await profileApi('/api/orders/my');
-
-    container.innerHTML = '';
-
-    if (orders.length === 0) {
-      container.innerHTML = '<p class="muted">No orders yet.</p>';
+    if (!orders.length) {
+      box.innerHTML = '<p class="muted">No orders yet.</p>';
       return;
     }
 
-    orders.forEach(order => {
-
-      const product = order.productId;
-
-      const div = document.createElement('div');
-
-      div.className = 'panel';
-
-      div.innerHTML = `
-        <h3>${product?.title || 'Product'}</h3>
-
-        <p>Price: ${order.price} ₪</p>
-
-        <p>Payment method: ${order.paymentMethod}</p>
-
-        <p>Status: ${order.status}</p>
-
-        <p>
-          Date:
-          ${new Date(order.createdAt).toLocaleDateString()}
-        </p>
-
-        ${
-          order.status === 'completed'
-            ? `
-              <button
-                class="btn btn-primary"
-                onclick="cancelMyOrder('${order._id}')">
-                Cancel order
-              </button>
-            `
-            : ''
-        }
-      `;
-
-      container.appendChild(div);
-
-    });
+    box.innerHTML = orders.map(o => `
+      <div class="order-row">
+        <img src="${o.productId?.images?.[0] || ''}" alt="">
+        <div class="order-info">
+          <strong>${o.productId?.title || 'Item'}</strong>
+          <div class="small muted">
+            ${formatPrice(o.price)} · paid with ${o.paymentMethod}
+            · ${formatDate(o.createdAt)}
+          </div>
+          <div class="small muted">Seller: ${o.sellerId?.name || '—'}</div>
+        </div>
+        <div>
+          <span class="badge ${o.status === 'cancelled' ? 'badge-cancel' : ''}">
+            ${o.status}
+          </span>
+          ${o.status === 'completed' ? `
+            <button class="btn btn-ghost btn-sm danger-link"
+                    onclick="cancelMyOrder('${o._id}')">Cancel</button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
 
   } catch (err) {
-
-    container.innerHTML =
-      `<p class="field-error">${err.message}</p>`;
-
+    box.innerHTML = `<p class="field-error">${err.message}</p>`;
   }
 }
-
-
-// =========================
-// My Sales
-// =========================
 
 async function loadMySales() {
+  const box = document.getElementById('mySales');
+  if (!box) return;
 
-  const container = document.getElementById('mySales');
-
-  if (!container) return;
+  box.innerHTML = '<div class="spinner"></div>';
 
   try {
+    const sales = await api('/api/orders/sales');
 
-    const sales = await profileApi('/api/orders/sales');
-
-    container.innerHTML = '';
-
-    if (sales.length === 0) {
-      container.innerHTML = '<p class="muted">No sales yet.</p>';
+    if (!sales.length) {
+      box.innerHTML = '<p class="muted">No sales yet.</p>';
       return;
     }
 
-    sales.forEach(order => {
-
-      const product = order.productId;
-
-      const div = document.createElement('div');
-
-      div.className = 'panel';
-
-      div.innerHTML = `
-        <h3>${product?.title || 'Product'}</h3>
-
-        <p>Price: ${order.price} ₪</p>
-
-        <p>Points received: ${order.pointsEarned}</p>
-
-        <p>Status: ${order.status}</p>
-
-        <p>
-          Date:
-          ${new Date(order.createdAt).toLocaleDateString()}
-        </p>
-      `;
-
-      container.appendChild(div);
-
-    });
+    box.innerHTML = sales.map(o => `
+      <div class="order-row">
+        <img src="${o.productId?.images?.[0] || ''}" alt="">
+        <div class="order-info">
+          <strong>${o.productId?.title || 'Item'}</strong>
+          <div class="small muted">
+            ${formatPrice(o.price)} · ${formatDate(o.createdAt)}
+          </div>
+          <div class="small muted">Buyer: ${o.buyerId?.name || '—'}</div>
+        </div>
+        <div>
+          <span class="pts-amount earned">+${o.pointsEarned}</span>
+          <div class="small muted">points</div>
+        </div>
+      </div>
+    `).join('');
 
   } catch (err) {
-
-    container.innerHTML =
-      `<p class="field-error">${err.message}</p>`;
-
+    box.innerHTML = `<p class="field-error">${err.message}</p>`;
   }
 }
-
-
-// =========================
-// Favorites
-// =========================
-
-async function loadProfileFavorites() {
-
-  const container = document.getElementById('favorites');
-
-  if (!container) return;
-
-  try {
-
-    const products = await profileApi('/api/favorites');
-
-    container.innerHTML = '';
-
-    if (products.length === 0) {
-      container.innerHTML =
-        '<p class="muted">No favorites yet.</p>';
-      return;
-    }
-
-    products.forEach(product => {
-
-      const div = document.createElement('div');
-
-      div.className = 'panel';
-
-      div.innerHTML = `
-        <h3>${product.title}</h3>
-
-        <p>Price: ${product.price} ₪</p>
-
-        <p>Status: ${product.status}</p>
-      `;
-
-      container.appendChild(div);
-
-    });
-
-  } catch (err) {
-
-    container.innerHTML =
-      `<p class="field-error">${err.message}</p>`;
-
-  }
-}
-
-
-// =========================
-// Cancel order
-// =========================
 
 async function cancelMyOrder(orderId) {
-
-  const confirmed = confirm(
-    'Are you sure you want to cancel this order?'
-  );
-
-  if (!confirmed) return;
+  if (!confirm('Cancel this order? The item will return to the shop.')) return;
 
   try {
-
-    await profileApi(`/api/orders/${orderId}`, {
-      method: 'DELETE'
-    });
-
-    alert('Order cancelled successfully');
-
-    await loadMyOrders();
-
+    await api(`/api/orders/${orderId}`, { method: 'DELETE' });
+    showToast('Order cancelled', 'success');
+    loadMyOrders();
+    loadProfile();   // הנקודות השתנו
   } catch (err) {
-
-    alert(err.message);
-
+    showToast(err.message, 'error');
   }
 }
 
 
-// =========================
-// Load Developer 4 data
-// =========================
-
-loadMyOrders();
-loadMySales();
-loadProfileFavorites();
-
-
-// =========================
-// Tab Switching System
-// =========================
-document.addEventListener('DOMContentLoaded', () => {
-  const tabs = document.querySelectorAll('.tab');
-  const panels = document.querySelectorAll('.tab-panel');
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      // 1. הסרת active מכל הטאבים
-      tabs.forEach(t => t.classList.remove('active'));
-      // 2. הוספת active לטאב שנלחץ
-      tab.classList.add('active');
-
-      // 3. הסתרת כל הפאנלים
-      panels.forEach(p => p.classList.add('hidden'));
-
-      // 4. הצגת הפאנל המתאים
-      const targetTab = tab.getAttribute('data-tab');
-      const targetPanel = document.getElementById(`tab-${targetTab}`);
-      if (targetPanel) {
-        targetPanel.classList.remove('hidden');
-      }
-    });
-  });
-});
+loadProfile();

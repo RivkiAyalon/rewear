@@ -6,6 +6,15 @@ exports.createOrder = async (req, res) => {
   try {
     const { productId, paymentMethod, cardLast4, shippingCity } = req.body;
 
+// ולידציה לפני שנוגעים במוצר — אחרת מוצר יסומן כנמכר
+    // והמוכרת תקבל נקודות, ורק אז Order.create ייכשל
+    if (!productId) {
+      return res.status(400).json({ message: 'Product is required' });
+    }
+    if (!['card', 'points'].includes(paymentMethod)) {
+      return res.status(400).json({ message: 'Invalid payment method' });
+    }
+
     // 1. Claim the product only if it is still available
     const product = await Product.findOneAndUpdate(
       { _id: productId, status: 'available' },

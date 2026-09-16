@@ -36,17 +36,22 @@ async function populateCities(selectId = 'shippingCity') {
   const select = document.getElementById(selectId);
   if (!select) return;
 
+  // אם כבר מולא — לא ממלאים שוב
+  if (select.dataset.filled) return;
+  select.dataset.filled = 'true';
+
   const current = select.dataset.value || select.value || '';
 
   const cities = await loadCities();
 
-  cities.forEach(city => {
-    const option = document.createElement('option');
-    option.value = city;
-    option.textContent = city;
-    select.appendChild(option);
-  });
+  // שומרים את האפשרות הריקה הראשונה ומוסיפים אחריה
+  const placeholder = select.options[0]?.outerHTML || '';
+  select.innerHTML = placeholder + cities
+    .map(c => `<option value="${c}">${c}</option>`)
+    .join('');
 
+  // מחזירים את הערך שהיה — גם אם loadProfile
+  // הציבה אותו לפני שהרשימה נטענה
   if (current) select.value = current;
 }
 

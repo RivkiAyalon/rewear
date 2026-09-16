@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Checkout - ReWear</title>
+  <title>Checkout — ReWear</title>
 
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -14,134 +14,137 @@
 
   <div id="navbar"></div>
 
-  <main class="checkout-page">
+  <main class="container page">
 
-    <h1>תשלום</h1>
+    <div class="checkout-page">
 
-    <p>
-      <strong>Demo mode — no real payment is processed.</strong>
-    </p>
+      <!-- ===== מסך התשלום ===== -->
+      <div id="checkoutView">
 
-    <!-- Product summary -->
-    <section id="productSummary">
+        <h1>Checkout</h1>
 
-      <h2>סיכום הפריט</h2>
 
-      <img
-        id="productImage"
-        src=""
-        alt="Product"
-        style="max-width: 250px;"
-      >
 
-      <h3 id="productTitle"></h3>
+        <!-- סיכום הפריט -->
+        <section class="panel" id="productSummary">
 
-<p>
-  מחיר:
-  <strong>
-    <span id="productPrice"></span>
-  </strong>
-</p>
+          <h2>Your item</h2>
 
-    </section>
+          <div class="summary-item">
+            <img id="productImage" src="" alt="Product">
+            <div>
+              <strong id="productTitle"></strong>
+              <div class="muted small" id="productSeller"></div>
+              <div class="card-price mt" id="productPrice"></div>
+            </div>
+          </div>
 
-    <!-- Payment method -->
-    <section>
+        </section>
 
-      <h2>אמצעי תשלום</h2>
 
-      <label>
-        <input
-          type="radio"
-          name="paymentMethod"
-          value="card"
-          checked
-        >
-        Credit card
-      </label>
+        <!-- אמצעי תשלום -->
+        <section class="panel mt">
 
-      <br>
+          <h2>Payment method</h2>
 
-      <label id="pointsOption">
+          <label class="pay-option">
+            <input type="radio" name="paymentMethod" value="card" checked>
+            <span>Credit card</span>
+          </label>
 
-        <input
-          type="radio"
-          name="paymentMethod"
-          value="points"
-          id="pointsRadio"
-        >
+          <label class="pay-option" id="pointsOption">
+            <input type="radio" name="paymentMethod" value="points" id="pointsRadio">
+            <span>
+              Points
+              <span class="muted small" id="pointsMessage"></span>
+            </span>
+          </label>
 
-        Points
+        </section>
 
-        <span id="pointsMessage"></span>
 
-      </label>
+        <!-- פרטי כרטיס -->
+        <section class="panel mt" id="cardSection">
 
-    </section>
+          <h2>Card details</h2>
 
-    <!-- Card details -->
-    <section id="cardSection">
+          <div class="card-fields">
 
-      <h2>פרטי כרטיס</h2>
+            <div class="field">
+              <label for="cardHolder">Cardholder name</label>
+              <input class="input" id="cardHolder" type="text"
+                     placeholder="As it appears on the card">
+            </div>
 
-      <div>
-        <label for="cardHolder">
-          שם בעל הכרטיס
-        </label>
+            <div class="field">
+              <label for="cardNumber">Card number</label>
+              <input class="input" id="cardNumber" type="text"
+                     inputmode="numeric" autocomplete="off"
+                     placeholder="4242 4242 4242 4242">
+            </div>
 
-        <input
-          id="cardHolder"
-          type="text"
-        >
+            <div class="field">
+              <label for="expiry">Expiry</label>
+              <input class="input" id="expiry" type="text"
+                     placeholder="MM/YY" autocomplete="off" maxlength="5">
+            </div>
+
+            <div class="field">
+              <label for="cvv">CVV</label>
+              <input class="input" id="cvv" type="password"
+                     inputmode="numeric" maxlength="3" autocomplete="off"
+                     placeholder="123">
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <button class="btn btn-primary btn-lg btn-block mt" id="payButton">
+          Confirm purchase
+        </button>
+
+        <p id="checkoutMessage" class="field-error"></p>
+
       </div>
 
-      <div>
-        <label for="cardNumber">
-          מספר כרטיס
-        </label>
 
-        <input
-          id="cardNumber"
-          type="text"
-          inputmode="numeric"
-          autocomplete="off"
-        >
+      <!-- ===== מסך אישור — מוצג רק אחרי רכישה ===== -->
+      <div id="successView" class="hidden">
+
+        <div class="panel success-panel">
+
+          <div class="success-mark">✓</div>
+
+          <h1>Purchase completed</h1>
+
+          <p class="lead">
+            Thank you! Your order has been placed.
+          </p>
+
+          <div class="demo-note mt">
+            <strong>What happens next</strong><br>
+            Our team will contact you with the seller's details
+            so you can arrange a pickup time together.
+          </div>
+
+          <div id="successSummary" class="mt"></div>
+
+          <div class="flex gap mt">
+            <a class="btn btn-primary" href="/profile.html?tab=orders">
+              View my orders
+            </a>
+            <a class="btn btn-outline" href="/shop.html">
+              Keep shopping
+            </a>
+          </div>
+
+        </div>
+
       </div>
 
-      <div>
-        <label for="expiry">
-          תוקף MM/YY
-        </label>
-
-        <input
-          id="expiry"
-          type="text"
-          placeholder="MM/YY"
-          autocomplete="off"
-        >
-      </div>
-
-      <div>
-        <label for="cvv">
-          CVV
-        </label>
-
-        <input
-          id="cvv"
-          type="password"
-          inputmode="numeric"
-          maxlength="3"
-          autocomplete="off"
-        >
-      </div>
-
-    </section>
-
-    <button id="payButton">
-      אישור רכישה
-    </button>
-
-    <p id="checkoutMessage"></p>
+    </div>
 
   </main>
 

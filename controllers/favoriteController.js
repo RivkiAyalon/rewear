@@ -40,3 +40,21 @@ exports.getFavorites = async (req, res) => {
     });
   }
 };
+
+// הסרה ממועדפים
+exports.removeFavorite = async (req, res) => {
+  try {
+    const fav = await Favorite.findOneAndDelete({
+      userId: req.user.id,
+      productId: req.params.productId
+    });
+
+    if (!fav) {
+      return res.status(404).json({ message: 'Not in favorites' });
+    }
+
+    res.json({ message: 'Removed from favorites' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

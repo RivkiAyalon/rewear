@@ -863,3 +863,22 @@ img { max-width: 100%; display: block; }
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
 }
+
+/* ============ Checkout success ============ */
+.success-panel { text-align: center; padding: 44px 32px; }
+.success-panel h1 { font-size: 30px; margin-bottom: 8px; }
+.success-panel .lead { font-size: 17px; color: var(--ink-soft); }
+.success-panel .flex { justify-content: center; }
+.success-panel .demo-note,
+.success-panel .summary-item { text-align: left; }
+
+.success-mark {
+  width: 56px; height: 56px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--ok);
+  color: #fff;
+  font-size: 28px;
+  display: grid;
+  place-items: center;
+}

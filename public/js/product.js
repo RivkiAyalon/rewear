@@ -67,8 +67,8 @@ async function loadProduct() {
           <div class="panel">
             <h3>Seller</h3>
             <p>${product.sellerId?.name || ''}</p>
-            <p>${product.sellerId?.city || product.city || ''}</p>
-          </div>
+           <p class="muted">Pickup from ${product.city || '—'}</p>          
+           </div>
 
           <div class="flex gap mt">
             <button class="btn btn-outline" id="favoriteBtn">

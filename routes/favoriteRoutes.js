@@ -7,4 +7,6 @@ const ctrl = require('../controllers/favoriteController');
 router.post('/', auth, ctrl.addFavorite);
 router.get('/', auth, ctrl.getFavorites);
 
+router.delete('/:productId', auth, ctrl.removeFavorite);
+
 module.exports = router;

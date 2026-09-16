@@ -14,6 +14,7 @@ exports.getUsers = async (req, res) => {
       role: u.role,
       points: u.points,
       city: u.city,
+       phone: u.phone,    
       createdAt: u.createdAt,
       products: await Product.countDocuments({ sellerId: u._id }),
       orders:   await Order.countDocuments({ buyerId: u._id })
