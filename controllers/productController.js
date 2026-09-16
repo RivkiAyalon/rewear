@@ -133,6 +133,11 @@ exports.deleteProduct = async (req, res) => {
       return res.status(403).json({ message: 'You can only delete your own items' });
     }
 
+    // מוצר שנמכר לא נמחק — יש הזמנה שמצביעה עליו
+    if (product.status === 'sold') {
+      return res.status(400).json({ message: 'Sold items cannot be deleted' });
+    }
+
     await product.deleteOne();
     res.json({ message: 'Product deleted successfully' });
   } catch (err) {
