@@ -21,6 +21,7 @@ function switchTab(tab) {
   if (tab === 'users')  loadUsers();
   if (tab === 'orders') loadOrders();
     if (tab === 'products') loadProducts();
+    if (tab === 'messages') loadMessages();
 
 }
 
@@ -402,3 +403,75 @@ async function removeProduct(id, title) {
 
 document.getElementById('productSearch').oninput  = renderProducts;
 document.getElementById('productStatus').onchange = renderProducts;
+
+async function loadMessages() {
+  const box = document.getElementById('adminMessages');
+
+  try {
+    const messages = await api('/api/messages');
+
+    if (!messages.length) {
+      box.innerHTML = '<div class="empty"><h3>No messages yet</h3></div>';
+      return;
+    }
+
+    box.innerHTML = `
+      <div class="panel" style="overflow-x:auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Subject</th>
+              <th>Message</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${messages.map(message => `
+              <tr>
+                <td><strong>${message.name}</strong></td>
+                <td class="small muted">${message.email}</td>
+                <td>${message.subject || '—'}</td>
+                <td>${message.body}</td>
+                <td class="small muted">${formatDate(message.createdAt)}</td>
+                <td>
+                  ${message.isRead
+                    ? '<span class="badge">Read</span>'
+                    : `<button class="btn btn-ghost btn-sm"
+                         onclick="markMessageRead('${message._id}')">
+                         Mark as read
+                       </button>`}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (err) {
+    box.innerHTML = '<div class="empty"><h3>Could not load messages</h3></div>';
+  }
+}
+
+
+// מסמן הודעה מסוימת כנקראה ומרענן את רשימת ההודעות.
+async function markMessageRead(id) {
+  try {
+    // שולחים בקשת PUT לשרת כדי לעדכן את ההודעה.
+    await api(`/api/messages/${id}/read`, {
+      method: 'PUT'
+    });
+
+    // מציגים הודעה למנהלת שהפעולה הצליחה.
+    showToast('Message marked as read', 'success');
+
+    // טוענים מחדש את רשימת ההודעות כדי להציג את הסטטוס החדש.
+    loadMessages();
+  } catch (err) {
+    // מציגים הודעת שגיאה אם העדכון נכשל.
+    showToast(err.message, 'error');
+  }
+}
+
