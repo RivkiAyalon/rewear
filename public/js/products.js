@@ -76,3 +76,106 @@ if (categorySelect) {
     }
   });
 }
+
+// ============================================
+// שליחת טופס פרסום המוצר
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  const publishForm = document.getElementById('publish-form');
+
+  // אם אנחנו לא בעמוד עם הטופס — לא עושים כלום
+  if (!publishForm) return;
+
+  publishForm.addEventListener('submit', async (e) => {
+
+    // מונע מהדפדפן לרענן את העמוד
+    // (זו התנהגות ברירת המחדל של form)
+    e.preventDefault();
+
+    // ============================================
+    // 1. איסוף הנתונים מהטופס
+    // ============================================
+    const productData = {
+      title:       document.getElementById('title').value.trim(),
+      price:       Number(document.getElementById('price').value),
+      description: document.getElementById('description').value.trim(),
+      brand:       document.getElementById('brand')?.value.trim() || 'No brand',
+      gender:      document.getElementById('gender').value,
+      category:    document.getElementById('category').value,
+      type:        document.getElementById('type').value,
+      size:        document.getElementById('size').value,
+      condition:   document.getElementById('condition').value,
+      color:       document.getElementById('color')?.value.trim() || '',
+      city:        document.getElementById('city').value,
+
+      // הכתובות שחזרו מ-Cloudinary ב-upload.js
+      images: window.uploadedImageUrls || []
+    };
+
+    // ============================================
+    // 2. ולידציה בצד לקוח
+    // ============================================
+    // זו נוחות בלבד! אפשר לעקוף אותה דרך Postman.
+    // ההגנה האמיתית היא במודל Product ובקונטרולר.
+
+    if (!productData.title) {
+      return showToast('Please add a title', 'error');
+    }
+    if (!productData.price || productData.price <= 0) {
+      return showToast('Please enter a valid price', 'error');
+    }
+    if (!productData.gender || !productData.category ||
+        !productData.type || !productData.size) {
+      return showToast('Please complete all category fields', 'error');
+    }
+    if (!productData.images.length) {
+      return showToast('Please add at least one image', 'error');
+    }
+
+    // ============================================
+    // 3. נעילת הכפתור
+    // ============================================
+    // בלי זה, לחיצה כפולה מהירה תיצור שני מוצרים זהים
+    const submitBtn = publishForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Publishing...';
+
+    try {
+      
+      // בודקים אם זו עריכה או יצירה חדשה
+      const editId = publishForm.dataset.editId;
+
+      if (editId) {
+        await api(`/api/products/${editId}`, {
+          method: 'PUT',
+          body: JSON.stringify(productData)
+        });
+        showToast('Your item was updated', 'success');
+      } else {
+        await api('/api/products', {
+          method: 'POST',
+          body: JSON.stringify(productData)
+        });
+        showToast('Your item was published', 'success');
+      }
+
+      // מנקים את מצב העריכה
+      delete publishForm.dataset.editId;
+
+      setTimeout(() => {
+        window.location.href = '/profile.html?tab=items';
+      }, 900);
+
+
+    } catch (err) {
+      // err.message מגיע מהשרת — זו ההודעה
+      // שהקונטרולר החזיר ב-{ message: ... }
+      showToast(err.message, 'error');
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Publish item';
+    }
+  });
+});

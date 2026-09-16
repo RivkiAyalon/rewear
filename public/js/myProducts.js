@@ -1,131 +1,148 @@
+// ============================================
+// "המוצרים שלי" — טאב בפרופיל
+// ============================================
+
 async function loadMyProducts() {
   const container = document.getElementById('my-products-container');
   if (!container) return;
 
+  container.innerHTML = '<div class="spinner"></div>';
+
   try {
-    // שליחת בקשה לשרת עם אסימון אימות (אם מחוברים)
-    //const token = localStorage.getItem('token');
-    const token = localStorage.getItem('rewear_token') || localStorage.getItem('token');//שליחת הטוקן
-    let res = await fetch('/api/products/my', {
-      headers: {
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
+    // api() מ-common.js מוסיפה לבד את הטוקן ואת הכותרות
+    const products = await api('/api/products/my');
 
-    // ניסיון גיבוי לראוט חלופי במידה והשרת מחזיר 404
-    if (!res.ok && res.status === 404) {
-      res = await fetch('/api/products/my-products', {
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : ''
-        }
-      });
-    }
-
-    // אם עדיין אין תשובה תקינה מהשרת
-    if (!res.ok) {
-      container.innerHTML = '<p class="muted">You haven\'t listed any products yet.</p>';
-      return;
-    }
-
-    const products = await res.json();
-
-    // ניקוי האזור לפני הזרקת הנתונים
-    container.innerHTML = '';
-
-    // בדיקה אם אין מוצרים ברשימה
-    if (!products || !Array.isArray(products) || products.length === 0) {
-      container.innerHTML = '<p class="muted">You haven\'t listed any products yet.</p>';
-      return;
-    }
-
-    // אם יש מוצרים - מציגים אותם
-    products.forEach(product => {
-      const productCard = document.createElement('div');
-      productCard.className = 'product-card field';
-      
-      const soldTag = product.status === 'sold' ? `<span class="sold-tag">נמכר!</span>` : '';      
-      productCard.innerHTML = `
-        <h3>${product.title}</h3>
-        ${soldTag}
-        <p>קטגוריה: ${product.category}</p>
-        <button class="btn btn-secondary" onclick="editProduct('${product._id}')">Edit</button>
-        <button class="btn btn-danger" onclick="deleteProduct('${product._id}')">Delete</button>
+    if (!products.length) {
+      container.innerHTML = `
+        <div class="empty">
+          <h3>No items yet</h3>
+          <p>Publish your first item to start selling.</p>
+        </div>
       `;
-      
-      container.appendChild(productCard);
-    });
-
-  } catch (error) {
-    console.error('Error loading products:', error);
-    // טיפול בנפילה במקרה של שגיאת רשת/קוד – עדיין מציגים את ההודעה הניטרלית!
-    container.innerHTML = '<p class="muted">You haven\'t listed any products yet.</p>';
-  }
-}
-
-// פונקציית מחיקה עם חלונית אישור וקריאה לשרת
-async function deleteProduct(productId) {
-  if (confirm('האם את בטוחה שאת רוצה למחוק את המוצר?')) {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/products/${productId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : ''
-        }
-      });
-      
-      if (res.ok) {
-        alert('המוצר נמחק בהצלחה');
-        loadMyProducts(); // רענון הרשימה לאחר המחיקה
-      } else {
-        alert('שגיאה במחיקת המוצר');
-      }
-    } catch (err) {
-      console.error('Error deleting product:', err);
+      return;
     }
+
+    container.innerHTML = `
+      <div class="grid">
+        ${products.map(p => `
+          <div class="card">
+            <div class="card-media">
+              <img src="${p.images?.[0] || ''}" alt="${p.title}">
+              ${p.status === 'sold'
+                ? '<span class="badge badge-sold card-fav">Sold</span>'
+                : ''}
+            </div>
+            <div class="card-body">
+              <div class="card-brand">${p.brand || ''}</div>
+              <div class="card-title">${p.title}</div>
+              <div class="card-meta">${p.size} · ${p.condition}</div>
+              <div class="card-price">${formatPrice(p.price)}</div>
+
+              <div class="flex gap-sm mt">
+                ${p.status === 'sold' ? '' : `
+                  <button class="btn btn-outline btn-sm"
+                          onclick="editProduct('${p._id}')">Edit</button>
+                  <button class="btn btn-ghost btn-sm danger-link"
+                          onclick="removeMyProduct('${p._id}')">Delete</button>
+                `}
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+  } catch (err) {
+    container.innerHTML = `<div class="empty"><h3>${err.message}</h3></div>`;
   }
 }
 
-// קוראים לפונקציה מידית + בעת טעינת ה-DOM
-loadMyProducts();
-document.addEventListener('DOMContentLoaded', loadMyProducts);
 
-// האזנה ללחיצה על הטאב "My items" כדי לטעון מחדש את המוצרים
+// ============================================
+// מחיקת מוצר
+// ============================================
+// שם הפונקציה שונה מ-deleteProduct כדי לא להתנגש
+// עם שמות אחרים בעמוד
+async function removeMyProduct(productId) {
+  if (!confirm('Delete this item? This cannot be undone.')) return;
+
+  try {
+    await api(`/api/products/${productId}`, { method: 'DELETE' });
+    showToast('Item deleted', 'success');
+    loadMyProducts();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+
+// ============================================
+// עריכת מוצר — טוען את הנתונים לטופס הפרסום
+// ============================================
+async function editProduct(productId) {
+  try {
+    const product = await api(`/api/products/${productId}`);
+
+    // מעבר לטאב של הטופס
+    document.querySelector('.tab[data-tab="sell"]')?.click();
+
+    // מילוי השדות הפשוטים
+    document.getElementById('title').value       = product.title || '';
+    document.getElementById('price').value       = product.price || '';
+    document.getElementById('description').value = product.description || '';
+
+    const brandInput = document.getElementById('brand');
+    if (brandInput) brandInput.value = product.brand || '';
+
+    const colorInput = document.getElementById('color');
+    if (colorInput) colorInput.value = product.color || '';
+
+    // השדות המקושרים — חייבים למלא בסדר,
+    // וכל אחד מפעיל change שממלא את הבא אחריו
+    const genderSelect   = document.getElementById('gender');
+    const categorySelect = document.getElementById('category');
+
+    if (product.gender) {
+      genderSelect.value = product.gender;
+      genderSelect.dispatchEvent(new Event('change'));
+    }
+    if (product.category) {
+      categorySelect.value = product.category;
+      categorySelect.dispatchEvent(new Event('change'));
+    }
+    // type ו-size התמלאו עכשיו, אז אפשר לבחור בהם
+    if (product.type)      document.getElementById('type').value = product.type;
+    if (product.size)      document.getElementById('size').value = product.size;
+    if (product.condition) document.getElementById('condition').value = product.condition;
+    if (product.city)      document.getElementById('city').value = product.city;
+
+    // התמונות הקיימות — כדי שלא יימחקו אם לא מעלים חדשות
+    window.uploadedImageUrls = product.images || [];
+    const preview = document.getElementById('image-preview');
+    if (preview) {
+      preview.innerHTML = (product.images || [])
+        .map(url => `<img src="${url}" class="upload-thumb">`)
+        .join('');
+    }
+
+    // שומרים את ה-ID על הטופס — products.js יבדוק אותו
+    // ויחליט אם זו יצירה (POST) או עדכון (PUT)
+    const form = document.getElementById('publish-form');
+    form.dataset.editId = productId;
+    form.querySelector('button[type="submit"]').textContent = 'Update item';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+
+// נטען פעם אחת, כשנכנסים לטאב
 document.querySelectorAll('.tab[data-tab="items"]').forEach(tab => {
   tab.addEventListener('click', loadMyProducts);
 });
 
-async function editProduct(productId) {
-  try {
-    const res = await fetch(`/api/products/${productId}`);
-    if (!res.ok) throw new Error('Failed to fetch product');
-    const product = await res.json();
-
-    // מעבר לטאב Sell an item
-    const sellTab = document.querySelector('.tab[data-tab="sell"]');
-    if (sellTab) sellTab.click();
-
-    // מילוי הנתונים בטופס הפרסום
-    document.getElementById('title').value = product.title || '';
-    document.getElementById('price').value = product.price || '';
-    document.getElementById('description').value = product.description || '';
-    
-    if (product.gender) {
-      const genderSelect = document.getElementById('gender');
-      genderSelect.value = product.gender;
-      genderSelect.dispatchEvent(new Event('change'));
-    }
-
-    // שמירת ה-ID על הטופס לצורך עדכון (PUT)
-    const form = document.getElementById('publish-form');
-    if (form) {
-      form.dataset.editId = productId;
-      const submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.textContent = 'Update Item';
-    }
-
-  } catch (err) {
-    console.error('Error loading product for edit:', err);
-    alert('שגיאה בטעינת נתוני המוצר לעריכה');
-  }
-}
+// ואם הגיעו ישירות ל-?tab=items
+if (getParam('tab') === 'items') loadMyProducts();

@@ -847,3 +847,19 @@ img { max-width: 100%; display: block; }
 @media (max-width: 480px) {
   .stats-row { grid-template-columns: 1fr; }
 }
+
+/* ============ Image upload ============ */
+#image-preview {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  min-height: 80px;
+}
+.upload-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
