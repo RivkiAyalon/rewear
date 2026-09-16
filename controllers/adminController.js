@@ -83,3 +83,29 @@ exports.getOrders = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+// מחזירה את הנתונים המרכזיים שיוצגו בלוח הבקרה של המנהלת.
+exports.getStats = async (req, res) => {
+  try {
+    // מריצים את כל השאילתות במקביל כדי לחסוך זמן.
+    const [users, products, orders, revenue] = await Promise.all([
+      User.countDocuments(),
+      Product.countDocuments({ status: 'available' }),
+      Order.countDocuments({ status: 'completed' }),
+
+      // מחשבים את סך ההכנסות מכל ההזמנות שהושלמו.
+      Order.aggregate([
+        { $match: { status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$price' } } }
+      ])
+    ]);
+
+    res.json({
+      users,
+      products,
+      orders,
+      revenue: revenue[0]?.total || 0
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

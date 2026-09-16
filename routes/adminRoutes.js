@@ -10,5 +10,7 @@ router.get('/users', ctrl.getUsers);
 router.put('/users/:id/role', ctrl.changeRole);
 router.delete('/users/:id', ctrl.deleteUser);
 router.get('/orders', ctrl.getOrders);
+// מחזירה את הנתונים הסטטיסטיים שיוצגו בכרטיסי ה-Admin Dashboard
+router.get('/stats', ctrl.getStats);
 
 module.exports = router;
