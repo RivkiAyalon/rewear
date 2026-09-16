@@ -94,17 +94,47 @@ async function loadProduct() {
         document.getElementById('mainImage').src = img.src;
       };
     });
-    document.getElementById('favoriteBtn').onclick = async () => {
-  try {
-    await api('/api/favorites', {
-      method: 'POST',
-      body: JSON.stringify({
-        productId: product._id
-      })
-    });
+    const favoriteBtn = document.getElementById('favoriteBtn');
+let isFavorite = false;
 
-    document.getElementById('favoriteBtn').textContent = '♥ Favorited';
-    showToast('Added to favorites', 'success');
+// בודקים אם המוצר כבר במועדפים
+try {
+  const favorites = await api('/api/favorites');
+
+  isFavorite = favorites.some(fav => fav._id === product._id);
+
+  favoriteBtn.textContent = isFavorite
+    ? '♥ Favorited'
+    : '♡ Favorite';
+
+} catch (err) {
+  console.log('Could not load favorites:', err.message);
+}
+
+// הוספה / הסרה מהמועדפים
+favoriteBtn.onclick = async () => {
+  try {
+    if (isFavorite) {
+      await api(`/api/favorites/${product._id}`, {
+        method: 'DELETE'
+      });
+
+      isFavorite = false;
+      favoriteBtn.textContent = '♡ Favorite';
+      showToast('Removed from favorites', 'success');
+
+    } else {
+      await api('/api/favorites', {
+        method: 'POST',
+        body: JSON.stringify({
+          productId: product._id
+        })
+      });
+
+      isFavorite = true;
+      favoriteBtn.textContent = '♥ Favorited';
+      showToast('Added to favorites', 'success');
+    }
 
   } catch (err) {
     showToast(err.message, 'error');

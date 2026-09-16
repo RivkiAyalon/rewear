@@ -91,20 +91,141 @@ function productCard(p) {
     <a href="/product.html?id=${p._id}" class="card">
       <div class="card-media">
         <img src="${p.images?.[0] || ''}" alt="${p.title}">
-        ${p.status === 'sold' ? '<span class="badge badge-sold card-fav">Sold</span>' : ''}
+
+        ${p.status === 'sold'
+          ? '<span class="badge badge-sold card-fav">Sold</span>'
+          : ''
+        }
+
+        <span
+          class="card-heart"
+          data-favorite-id="${p._id}"
+          data-favorite="false"
+          title="Favorite"
+          role="button"
+        >♡</span>
       </div>
+
       <div class="card-body">
         <div class="card-brand">${p.brand || ''}</div>
         <div class="card-title">${p.title}</div>
         <div class="card-meta">${p.size} · ${p.condition}</div>
+
         <div class="card-price">
           ${formatPrice(p.price)}
-          ${p.usdPrice != null ? `<span class="muted">≈ $${p.usdPrice}</span>` : ''}
+          ${p.usdPrice != null
+            ? `<span class="muted">≈ $${p.usdPrice}</span>`
+            : ''
+          }
         </div>
       </div>
     </a>
   `;
 }
+
+function setFavoriteHeartState(productId, isFavorite) {
+  document
+    .querySelectorAll(`[data-favorite-id="${productId}"]`)
+    .forEach(heart => {
+      heart.dataset.favorite = isFavorite ? 'true' : 'false';
+      heart.textContent = isFavorite ? '♥' : '♡';
+    });
+}
+
+async function refreshFavoriteHearts() {
+  const hearts = document.querySelectorAll('[data-favorite-id]');
+
+  if (!hearts.length) return;
+
+  // משתמשת לא מחוברת
+  if (!getToken()) {
+    hearts.forEach(heart => {
+      heart.dataset.favorite = 'false';
+      heart.textContent = '♡';
+    });
+    return;
+  }
+
+  try {
+    const favorites = await api('/api/favorites');
+
+    const favoriteIds = new Set(
+      favorites.map(product => product._id)
+    );
+
+    hearts.forEach(heart => {
+      const isFavorite = favoriteIds.has(
+        heart.dataset.favoriteId
+      );
+
+      heart.dataset.favorite =
+        isFavorite ? 'true' : 'false';
+
+      heart.textContent =
+        isFavorite ? '♥' : '♡';
+    });
+
+  } catch (err) {
+    console.log(
+      'Could not load favorites:',
+      err.message
+    );
+  }
+}
+
+window.addEventListener('pageshow', () => {
+  refreshFavoriteHearts();
+});
+
+document.addEventListener('click', async (e) => {
+  const heart = e.target.closest('[data-favorite-id]');
+
+  if (!heart) return;
+
+  // שלא יפתח את עמוד המוצר כשלוחצים על הלב
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (!getToken()) {
+    window.location.href =
+      '/login.html?redirect=' +
+      encodeURIComponent(
+        window.location.pathname + window.location.search
+      );
+    return;
+  }
+
+  const productId = heart.dataset.favoriteId;
+  const isFavorite =
+    heart.dataset.favorite === 'true';
+
+  try {
+    if (isFavorite) {
+      await api(`/api/favorites/${productId}`, {
+        method: 'DELETE'
+      });
+
+      setFavoriteHeartState(productId, false);
+      showToast('Removed from favorites', 'success');
+
+    } else {
+      await api('/api/favorites', {
+        method: 'POST',
+        body: JSON.stringify({
+          productId
+        })
+      });
+
+      setFavoriteHeartState(productId, true);
+      showToast('Added to favorites', 'success');
+    }
+
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+
 
 // ============ Toast messages ============
 

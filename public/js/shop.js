@@ -51,6 +51,8 @@ async function loadProducts() {
     ).join('')}
   </div>`;
 
+  await refreshFavoriteHearts();
+
   } catch (err) {
     box.innerHTML =
       `<div class="empty"><h3>Could not load items</h3></div>`;

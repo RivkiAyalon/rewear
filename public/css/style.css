@@ -219,6 +219,44 @@ img { max-width: 100%; display: block; }
 .card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
 .card-media { position: relative; aspect-ratio: 1; background: var(--surface-2); }
 .card-media img { width: 100%; height: 100%; object-fit: cover; }
+
+.card-heart {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  background: rgba(255, 255, 255, .94);
+  border-radius: 50%;
+
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+
+  cursor: pointer;
+  user-select: none;
+
+  box-shadow: 0 2px 8px rgba(22, 24, 28, .15);
+
+  z-index: 2;
+
+  transition: transform .15s, background .15s;
+}
+
+.card-heart:hover {
+  transform: scale(1.08);
+  background: #fff;
+}
+
+.card-heart[data-favorite="true"] {
+  color: var(--pine);
+}
+
 .card-fav {
   position: absolute; top: 10px; right: 10px;
   width: 34px; height: 34px;

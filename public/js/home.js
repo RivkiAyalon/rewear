@@ -20,6 +20,9 @@ async function loadLatest() {
       })
     ).join('')}
   </div>`;
+
+  await refreshFavoriteHearts();
+
   } catch (err) {
     box.innerHTML = `<div class="empty"><h3>Could not load items</h3>
                      <p class="muted">${err.message}</p></div>`;
