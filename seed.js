@@ -33,12 +33,72 @@ const COLORS = ['Black', 'White', 'Blue', 'Beige', 'Green', 'Navy',
                 'Pink', 'Grey', 'Brown', 'Red', 'Cream', 'Olive'];
 
 
+// ============================================
+// תמונות
+// ============================================
+// כל התמונות מאוחסנות בחשבון Cloudinary שלנו.
+// היתרון על שירות חיצוני: הן לעולם לא נשברות.
+//
+// לכל type מ-categories.js יש כאן רשימת שמות קבצים.
+// חשוב: ה-seed מייצר מוצרים רק בקטגוריות שמופיעות כאן,
+// כדי שלא ייווצר מוצר עם תמונה שלא מתאימה לו.
+// ============================================
+
+const CLOUD_BASE = 'https://res.cloudinary.com/bcs2gb7g/image/upload';
+const IMG_EXT = 'avif';
+
+const IMAGE_SETS = {
+  // ---- בגדי נשים ----
+  dresses:  ['dress1', 'dress2', 'dress3'],
+  skirts:   ['skirt1', 'skirt2', 'skirt3'],
+  tops:     ['blouse1', 'blouse2', 'blouse3'],
+  pants:    ['jeans1', 'jeans2', 'jeans3'],
+  knitwear: ['sweater1', 'sweater2', 'sweater3'],
+  jackets:  ['coat1', 'coat2', 'coat3'],
+
+  // ---- נעליים ----
+  sneakers: ['sneakers1', 'sneakers2', 'sneakers3'],
+  heels:    ['high_heels1', 'high_heels2', 'high_heels3'],
+  boots:    ['boots1', 'boots2', 'boots3'],
+  sandals:  ['sandals1', 'sandals2', 'sandals3'],
+  flats:    ['sandals1', 'sandals2', 'sandals3'],   // אין תמונות משלהן
+  formal:   ['boots1', 'boots2', 'boots3'],
+
+  // ---- אביזרים ----
+  // שימו לב: התמונה השנייה נשמרה בשם 2handbag ולא handbag2
+  bags:     ['handbag1', '2handbag', 'handbag3'],
+  jewelry:  ['jewelry1', 'jewelry2', 'jewelry3'],
+  // והשלישית של המשקפיים נשמרה בשם 3 בלבד
+  glasses:  ['sunglasses1', 'sunglasses2', '3'],
+
+  // ---- גברים ----
+  shirts:   ['mens_shirt1', 'mens_shirt2', 'mens_shirt3'],
+  suits:    ['mens_shirt1', 'mens_shirt2', 'mens_shirt3'],
+
+  // ---- ילדים ----
+  girls:      ['kids_clothes1', 'kids_clothes2', 'kids_clothes3'],
+  boys:       ['kids_clothes1', 'kids_clothes2', 'kids_clothes3'],
+  baby:       ['kids_clothes1', 'kids_clothes2', 'kids_clothes3'],
+  costumes:   ['kids_clothes1', 'kids_clothes2', 'kids_clothes3'],
+  girlsShoes: ['sneakers1', 'sneakers2', 'sneakers3'],
+  boysShoes:  ['sneakers1', 'sneakers2', 'sneakers3'],
+
+  // ---- ברירת מחדל ----
+  // רשת ביטחון בלבד. בפועל הקוד לא אמור להגיע לכאן,
+  // כי randomTypeWithImages בוחר רק types שיש להם תמונות.
+  default:  ['default1', 'default2', 'default3']
+};
 
 function imageFor(type, seed) {
-  return `https://picsum.photos/seed/${type}${seed}/600/600`;
+  const set  = IMAGE_SETS[type] || IMAGE_SETS.default;
+  const name = set[seed % set.length];
+  return `${CLOUD_BASE}/${name}.${IMG_EXT}`;
 }
 
-// ---------- users ----------
+
+// ============================================
+// משתמשות
+// ============================================
 async function createUsers() {
   const hash = await bcrypt.hash('User123', 10);
   const adminHash = await bcrypt.hash('Admin123', 10);
@@ -88,10 +148,19 @@ async function createUsers() {
   return created;
 }
 
-// ---------- products ----------
-function randomTypeFor(gender, category) {
-  const types = Object.keys(CATEGORIES[gender].categories[category].types);
-  return pick(types);
+
+// ============================================
+// מוצרים
+// ============================================
+
+// מחזירה type אקראי מתוך אלה שיש להם תמונות ב-IMAGE_SETS.
+// ככה לא נוצר מוצר עם תמונה גנרית שלא מתאימה לו.
+// אם אין אף type מתאים בקטגוריה — מחזירה null,
+// והלולאה תנסה שוב עם צירוף אחר.
+function randomTypeWithImages(gender, category) {
+  const all = Object.keys(CATEGORIES[gender].categories[category].types);
+  const withImages = all.filter(t => IMAGE_SETS[t]);
+  return withImages.length ? pick(withImages) : null;
 }
 
 function sizesFor(gender, category) {
@@ -108,23 +177,32 @@ async function createProducts(users) {
   const genders    = ['women', 'women', 'women', 'women', 'men', 'men', 'kids'];
   const categories = ['clothing', 'clothing', 'clothing', 'shoes', 'accessories'];
   const conditions = Object.keys(CONDITIONS);
+  const sellers    = users.filter(u => u.role === 'user');
 
   const products = [];
+  let i = 0;
 
-  for (let i = 0; i < 140; i++) {
+  // ממשיכים עד שיש 140 מוצרים.
+  // אם צירוף מגדר+קטגוריה לא מניב type עם תמונות,
+  // פשוט מנסים צירוף אחר.
+  while (products.length < 140) {
     const gender   = pick(genders);
     const category = pick(categories);
-    const type     = randomTypeFor(gender, category);
-    const seller   = pick(users.filter(u => u.role === 'user'));
-    const label    = CATEGORIES[gender].categories[category].types[type];
-    const brand    = pick(BRANDS);
-    const color    = pick(COLORS);
+    const type     = randomTypeWithImages(gender, category);
 
-    // בין אחת לשלוש תמונות לכל מוצר
+    if (!type) continue;
+
+    const seller = pick(sellers);
+    const label  = CATEGORIES[gender].categories[category].types[type];
+    const brand  = pick(BRANDS);
+    const color  = pick(COLORS);
+
+    // בין אחת לשלוש תמונות לכל מוצר,
+    // כדי שהגלריה בעמוד המוצר תהיה עם מה לעבוד
     const imageCount = rand(1, 3);
     const images = [];
     for (let n = 0; n < imageCount; n++) {
-      images.push(imageFor(type, i * 10 + n));
+      images.push(imageFor(type, i + n));
     }
 
     products.push({
@@ -146,6 +224,8 @@ async function createProducts(users) {
       views: rand(0, 320),
       createdAt: dateWithinMonths(8)
     });
+
+    i++;
   }
 
   const created = await Product.insertMany(products);
@@ -153,12 +233,15 @@ async function createProducts(users) {
   return created;
 }
 
-// ---------- orders ----------
+
+// ============================================
+// הזמנות
+// ============================================
 async function createOrders(users, products) {
   const orders = [];
   const buyers = users.filter(u => u.role === 'user');
 
-  // 90 מוצרים ראשונים נמכרים, 50 נשארים בחנות
+  // 90 המוצרים הראשונים נמכרים, 50 נשארים בחנות
   for (let i = 0; i < 90; i++) {
     const product = products[i];
     const buyer   = pick(buyers.filter(u =>
@@ -167,8 +250,8 @@ async function createOrders(users, products) {
 
     const byCard = Math.random() > 0.35;
 
-    // כ-8% מההזמנות בוטלו — כדי שיהיה מה להראות
-    // ב-Aggregate שמסנן רק completed
+    // כ-8% מההזמנות בוטלו — כדי שיהיה מה לסנן
+    // ב-Aggregate שמחשב רק completed
     const cancelled = Math.random() < 0.08;
 
     orders.push({
@@ -195,7 +278,10 @@ async function createOrders(users, products) {
   return created;
 }
 
-// ---------- favorites ----------
+
+// ============================================
+// מועדפים
+// ============================================
 async function createFavorites(users, products) {
   const favorites = [];
   const seen = new Set();
@@ -206,7 +292,9 @@ async function createFavorites(users, products) {
     const product = pick(products);
     const key     = `${user._id}-${product._id}`;
 
-    if (seen.has(key)) continue;   // האינדקס הייחודי היה דוחה כפילות
+    // האינדקס הייחודי במודל היה דוחה כפילות,
+    // אז מונעים אותה מראש
+    if (seen.has(key)) continue;
     seen.add(key);
 
     favorites.push({ userId: user._id, productId: product._id });
@@ -216,7 +304,10 @@ async function createFavorites(users, products) {
   console.log(`✔ ${created.length} favorites created`);
 }
 
-// ---------- messages ----------
+
+// ============================================
+// הודעות מטופס יצירת קשר
+// ============================================
 async function createMessages() {
   const messages = [
     { name: 'Sarah Klein', email: 'sarah@example.com',
@@ -243,12 +334,17 @@ async function createMessages() {
   console.log(`✔ ${created.length} messages created`);
 }
 
-// ---------- main ----------
+
+// ============================================
+// ריצה
+// ============================================
 async function seed() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('Connected to MongoDB');
 
+    // מוחקים הכל ובונים מחדש, כדי שכל אחת
+    // תוכל לאפס למצב ידוע
     await Promise.all([
       User.deleteMany({}), Product.deleteMany({}), Order.deleteMany({}),
       Favorite.deleteMany({}), Message.deleteMany({})
