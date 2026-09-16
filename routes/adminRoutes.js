@@ -12,5 +12,7 @@ router.delete('/users/:id', ctrl.deleteUser);
 router.get('/orders', ctrl.getOrders);
 // מחזירה את הנתונים הסטטיסטיים שיוצגו בכרטיסי ה-Admin Dashboard
 router.get('/stats', ctrl.getStats);
+router.get('/sales-by-month', ctrl.getSalesByMonth);
+router.get('/top-sellers', ctrl.getTopSellers);
 
 module.exports = router;

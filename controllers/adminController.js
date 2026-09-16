@@ -109,3 +109,59 @@ exports.getStats = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Aggregate 1 — מכירות לפי חודש, מזין את הגרף הראשון
+exports.getSalesByMonth = async (req, res) => {
+  try {
+    const data = await Order.aggregate([
+      { $match: { status: 'completed' } },
+      { $group: {
+          _id: {
+            year:  { $year:  '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          revenue: { $sum: '$price' },
+          orders:  { $sum: 1 }
+      }},
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Aggregate 2 — חמש המוכרות המובילות, מחבר בין orders ל-users
+exports.getTopSellers = async (req, res) => {
+  try {
+    const data = await Order.aggregate([
+      { $match: { status: 'completed' } },
+      { $group: {
+          _id: '$sellerId',
+          revenue:   { $sum: '$price' },
+          itemsSold: { $sum: 1 }
+      }},
+      { $sort: { revenue: -1 } },
+      { $limit: 5 },
+      { $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'seller'
+      }},
+      { $unwind: '$seller' },
+      { $project: {
+          _id: 0,
+          name: '$seller.name',
+          city: '$seller.city',
+          revenue: 1,
+          itemsSold: 1
+      }}
+    ]);
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
