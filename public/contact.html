@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — ReWear</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div id="navbar"></div>
+
+  <main class="container page">
+    <h1>Contact us</h1>
+
+    <form id="contact-form" class="panel">
+      <div class="field">
+        <label for="name">Name</label>
+        <input class="input" id="name" name="name" type="text" required>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input class="input" id="email" name="email" type="email" required>
+      </div>
+
+      <div class="field">
+        <label for="subject">Subject</label>
+        <input class="input" id="subject" name="subject" type="text">
+      </div>
+
+      <div class="field">
+        <label for="body">Message</label>
+        <textarea class="textarea" id="body" name="body" required></textarea>
+      </div>
+
+      <button class="btn btn-primary" type="submit">Send message</button>
+    </form>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/contact.js"></script>
+</body>
+</html>

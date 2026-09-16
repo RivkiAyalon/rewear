@@ -24,6 +24,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/favorites', require('./routes/favoriteRoutes'));
 
+app.use('/api/messages', require('./routes/messageRoutes'));
 
 // נתיב בדיקה — נמחק אותו בהמשך
 app.get('/api/health', (req, res) => {
