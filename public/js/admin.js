@@ -429,10 +429,10 @@ async function loadMessages() {
           <tbody>
             ${messages.map(message => `
               <tr>
-                <td><strong>${message.name}</strong></td>
-                <td class="small muted">${message.email}</td>
-                <td>${message.subject || '—'}</td>
-                <td>${message.body}</td>
+                <td><strong>${escapeHtml(message.name)}</strong></td>
+                <td class="small muted">${escapeHtml(message.email)}</td>
+                <td>${escapeHtml(message.subject) || '—'}</td>
+                <td class="msg-body">${escapeHtml(message.body)}</td>
                 <td class="small muted">${formatDate(message.createdAt)}</td>
                 <td>
                   ${message.isRead

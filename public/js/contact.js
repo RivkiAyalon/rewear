@@ -23,14 +23,12 @@ document.getElementById('contact-form').addEventListener('submit', async (event)
 
     // מציגים למשתמשת הודעה שהטופס נשלח בהצלחה.
     if (typeof showToast === 'function') {
-      showToast('Message sent successfully');
-    }
+      showToast('Message sent successfully', 'success');    }
   } catch (err) {
     console.error(err);
 
     // מציגים למשתמשת הודעת שגיאה אם השליחה נכשלה.
     if (typeof showToast === 'function') {
-      showToast('Failed to send message');
-    }
+      showToast('Failed to send message', 'error');    }
   }
 });

@@ -1,9 +1,17 @@
 const Message = require('../models/Message');
 
 // יוצר הודעה חדשה מטופס יצירת הקשר.
+
 exports.createMessage = async (req, res) => {
   try {
-    const message = await Message.create(req.body);
+    const { name, email, subject, body } = req.body;
+
+    if (!name || !email || !body) {
+      return res.status(400).json({ message: 'Name, email and message are required' });
+    }
+
+    // רק ארבעה שדות — isRead תמיד false ביצירה
+    const message = await Message.create({ name, email, subject, body });
 
     res.status(201).json(message);
   } catch (err) {

@@ -920,3 +920,11 @@ img { max-width: 100%; display: block; }
   display: grid;
   place-items: center;
 }
+
+/* ============ Admin messages ============ */
+.msg-body {
+  max-width: 320px;
+  white-space: normal;
+  line-height: 1.5;
+}
+tr:has(.badge-unread) { background: var(--surface-2); }

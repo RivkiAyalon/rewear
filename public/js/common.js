@@ -84,6 +84,14 @@ function formatDate(iso) {
   });
 }
 
+// מנטרל HTML בטקסט שמשתמשים הקלידו,
+// לפני שמזריקים אותו עם innerHTML
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
 // ============ Shared product card ============
 
 function productCard(p) {
