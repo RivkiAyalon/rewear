@@ -106,14 +106,39 @@ document.getElementById('sort').onchange = e => {
   loadProducts();
 };
 
+// שדה החיפוש
+const searchInput = document.getElementById('searchInput');
+searchInput.value = state.search;
+
+function doSearch() {
+  state.search = searchInput.value.trim();
+  state.page = 1;
+  loadProducts();
+}
+
+document.getElementById('searchBtn').onclick = doSearch;
+
+searchInput.onkeydown = e => {
+  if (e.key === 'Enter') doSearch();
+};
+
 function renderFilters() {
   const el = document.getElementById('filters');
 
   el.innerHTML = `
     <div class="filter-group">
-      <h4>Gender</h4>
+      <div class="flex between center">
+        <h4>Gender</h4>
+        ${state.gender ? `
+          <button class="btn btn-ghost btn-sm" id="clearGender">
+            Clear
+          </button>
+        ` : ''}
+      </div>
       ${Object.entries(CATEGORIES).map(([key, val]) =>
-        `<button class="filter-btn" data-gender="${key}">
+        `<button
+          class="filter-btn ${state.gender === key ? 'active' : ''}"
+          data-gender="${key}">
           ${val.label}
         </button>`
       ).join('')}
@@ -124,7 +149,15 @@ function renderFilters() {
     <div class="filter-group" id="typeGroup"></div>
 
     <div class="filter-group">
-      <h4>Price</h4>
+      <div class="flex between center">
+        <h4>Price</h4>
+          <button
+            class="btn btn-ghost btn-sm ${state.minPrice || state.maxPrice ? '' : 'hidden'}"
+            id="clearPrice">
+            Clear
+          </button>
+      </div>
+
       <div class="flex gap-sm">
         <input class="input" id="minPrice" placeholder="Min" type="number">
         <input class="input" id="maxPrice" placeholder="Max" type="number">
@@ -132,7 +165,14 @@ function renderFilters() {
     </div>
 
     <div class="filter-group">
-      <h4>Condition</h4>
+      <div class="flex between center">
+        <h4>Condition</h4>
+        ${state.condition ? `
+          <button class="btn btn-ghost btn-sm" id="clearCondition">
+            Clear
+          </button>
+        ` : ''}
+      </div>
       ${Object.entries(CONDITIONS).map(([key, label]) =>
         `<label class="check">
           <input type="checkbox" value="${key}">
@@ -153,26 +193,67 @@ document.querySelectorAll('[data-gender]').forEach(btn => {
     state.type = '';
     state.page = 1;
 
+    renderFilters();
     renderCategories();
     loadProducts();
   };
 });
 
+const clearGender = document.getElementById('clearGender');
+
+if (clearGender) {
+  clearGender.onclick = () => {
+    state.gender = '';
+    state.category = '';
+    state.type = '';
+    state.page = 1;
+
+    renderFilters();
+    renderCategories();
+    renderTypes();
+    loadProducts();
+  };
+}
+
 const minPrice = document.getElementById('minPrice');
 const maxPrice = document.getElementById('maxPrice');
+const clearPrice = document.getElementById('clearPrice');
 
 minPrice.value = state.minPrice;
 maxPrice.value = state.maxPrice;
 
-minPrice.onchange = () => {
-  state.minPrice = minPrice.value;
-  state.page = 1;
-  loadProducts();
-};
+let priceTimer;
 
-maxPrice.onchange = () => {
+function updatePriceFilter() {
+  state.minPrice = minPrice.value;
   state.maxPrice = maxPrice.value;
   state.page = 1;
+
+  clearPrice.classList.toggle(
+    'hidden',
+    !state.minPrice && !state.maxPrice
+  );
+
+  clearTimeout(priceTimer);
+
+  priceTimer = setTimeout(() => {
+    loadProducts();
+  }, 300);
+}
+
+minPrice.oninput = updatePriceFilter;
+maxPrice.oninput = updatePriceFilter;
+
+clearPrice.onclick = () => {
+  state.minPrice = '';
+  state.maxPrice = '';
+  state.page = 1;
+
+  minPrice.value = '';
+  maxPrice.value = '';
+
+  clearPrice.classList.add('hidden');
+
   loadProducts();
 };
 
@@ -186,19 +267,39 @@ document.querySelectorAll('.check input').forEach(cb => {
 
     state.condition = cb.checked ? cb.value : '';
     state.page = 1;
+
+    renderFilters();
+    renderCategories();
+    renderTypes();
     loadProducts();
   };
 });
 
+const clearCondition = document.getElementById('clearCondition');
+
+if (clearCondition) {
+  clearCondition.onclick = () => {
+    state.condition = '';
+    state.page = 1;
+
+    renderFilters();
+    renderCategories();
+    renderTypes();
+    loadProducts();
+  };
+}
+
 document.getElementById('clearFilters').onclick = () => {
   state.page = 1;
   state.sort = 'newest';
+  state.search = '';
   state.gender = '';
   state.category = '';
   state.type = '';
   state.minPrice = '';
   state.maxPrice = '';
   state.condition = '';
+  searchInput.value = '';
 
   document.getElementById('sort').value = 'newest';
 
@@ -223,25 +324,50 @@ function renderCategories() {
   const categories = CATEGORIES[state.gender].categories;
 
   el.innerHTML = `
-    <h4>Category</h4>
+    <div class="flex between center">
+      <h4>Category</h4>
+      ${state.category ? `
+        <button class="btn btn-ghost btn-sm" id="clearCategory">
+          Clear
+        </button>
+      ` : ''}
+    </div>
     ${Object.entries(categories).map(([key, val]) =>
-      `<button class="filter-btn" data-category="${key}">
+      `<button
+        class="filter-btn ${state.category === key ? 'active' : ''}"
+        data-category="${key}">
         ${val.label}
       </button>`
     ).join('')}
   `;
 
   document.querySelectorAll('[data-category]').forEach(btn => {
-    btn.onclick = () => {
-      state.category = btn.dataset.category;
+  btn.onclick = () => {
+    state.category = btn.dataset.category;
+    state.type = '';
+    state.page = 1;
+
+    renderCategories();
+    renderTypes();
+    loadProducts();
+    };
+  });
+
+  const clearCategory = document.getElementById('clearCategory');
+  
+  if (clearCategory) {
+    clearCategory.onclick = () => {
+      state.category = '';
       state.type = '';
       state.page = 1;
-
+  
+      renderCategories();
       renderTypes();
       loadProducts();
     };
-  });
+  }
 }
+
 
 function renderTypes() {
   const el = document.getElementById('typeGroup');
@@ -259,21 +385,44 @@ function renderTypes() {
   }
 
   el.innerHTML = `
-    <h4>Type</h4>
+    <div class="flex between center">
+      <h4>Type</h4>
+      ${state.type ? `
+        <button class="btn btn-ghost btn-sm" id="clearType">
+          Clear
+        </button>
+      ` : ''}
+    </div>
     ${Object.entries(category.types).map(([key, label]) =>
-      `<button class="filter-btn" data-type="${key}">
+      `<button
+        class="filter-btn ${state.type === key ? 'active' : ''}"
+        data-type="${key}">
         ${label}
       </button>`
     ).join('')}
   `;
 
   document.querySelectorAll('[data-type]').forEach(btn => {
-    btn.onclick = () => {
-      state.type = btn.dataset.type;
-      state.page = 1;
-      loadProducts();
-    };
-  });
+  btn.onclick = () => {
+  state.type = btn.dataset.type;
+  state.page = 1;
+
+  renderTypes();
+  loadProducts();
+  };
+});
+
+const clearType = document.getElementById('clearType');
+
+if (clearType) {
+  clearType.onclick = () => {
+    state.type = '';
+    state.page = 1;
+
+    renderTypes();
+    loadProducts();
+  };
+}
 
 }
 

@@ -156,6 +156,7 @@ async function loadFavorites() {
 
   try {
     const products = await api('/api/favorites');
+    const usdRate = await getUsdRate();
 
     if (!products.length) {
       box.innerHTML = `<div class="empty">
@@ -180,7 +181,11 @@ async function loadFavorites() {
               <div class="card-brand">${escapeHtml(p.brand)}</div>
               <div class="card-title">${escapeHtml(p.title)}</div>
               <div class="card-meta">${p.size} · ${p.condition}</div>
-              <div class="card-price">${formatPrice(p.price)}</div>
+              <div class="card-price">
+                ${formatPrice(p.price)}
+                <span class="muted">≈ $${Math.round(p.price * usdRate)}</span>
+            </div>
+              
 
               <div class="flex gap-sm mt">
                 ${p.status === 'sold' ? '' : `

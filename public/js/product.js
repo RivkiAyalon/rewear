@@ -123,6 +123,15 @@ async function refreshProductFavorite() {
 await refreshProductFavorite();
 
 favoriteBtn.onclick = async () => {
+  if (!getToken()) {
+    const redirect = encodeURIComponent(
+      window.location.pathname + window.location.search
+    );
+
+    window.location.href = `/login.html?redirect=${redirect}`;
+    return;
+  }
+
   try {
     if (isFavorite) {
       await api(`/api/favorites/${product._id}`, {
