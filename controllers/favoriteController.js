@@ -1,6 +1,10 @@
 const Favorite = require('../models/Favorite');
 
 exports.addFavorite = async (req, res) => {
+   try {
+    if (!req.body?.productId) {
+      return res.status(400).json({ message: 'Product is required' });
+    }
   try {
     const fav = await Favorite.create({
       userId: req.user.id,
