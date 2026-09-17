@@ -928,3 +928,44 @@ img { max-width: 100%; display: block; }
   line-height: 1.5;
 }
 tr:has(.badge-unread) { background: var(--surface-2); }
+
+/* ============ Profile orders ============ */
+.order-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.order-row:last-child { border-bottom: none; }
+
+.order-row img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+
+.order-row .order-info {
+  flex: 1;
+  min-width: 0;
+}
+.order-row .order-info strong {
+  display: block;
+  font-size: 15.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-row > div:last-child {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .order-row { gap: 12px; }
+  .order-row img { width: 52px; height: 52px; }
+}

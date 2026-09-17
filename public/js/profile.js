@@ -1,6 +1,7 @@
 // עמוד מוגן — מי שלא מחוברת מועברת להתחברות
 if (!requireAuth()) throw new Error('not authenticated');
 
+
 // ============================================
 // טאבים
 // ============================================
@@ -54,7 +55,7 @@ async function loadProfile() {
     citySelect.dataset.value = user.city || '';
     citySelect.value = user.city || '';
 
-        // אם הרשימה עדיין לא נטענה, זה יציב את הערך כשהיא תסתיים
+    // אם הרשימה עדיין לא נטענה, זה יציב את הערך כשהיא תסתיים
     if (!citySelect.dataset.filled) populateCities('detCity');
 
   } catch (err) {
@@ -94,12 +95,14 @@ saveBtn.onclick = async () => {
 
     localStorage.setItem('rewear_user', JSON.stringify(user));
     showToast('Your details were saved', 'success');
-    renderNavbar();
+    renderNavbar();       // מרענן את השם והאות בתפריט
     loadProfile();
 
   } catch (err) {
     showToast(err.message, 'error');
   } finally {
+    // finally רץ תמיד — המשתמשת נשארת בעמוד,
+    // אז הכפתור חייב לחזור לפעולה בשני המקרים
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save changes';
   }
@@ -131,7 +134,7 @@ async function loadPoints() {
     box.innerHTML = `<div class="panel">${data.history.map(h => `
       <div class="pts-row">
         <div>
-          <strong>${h.title}</strong>
+          <strong>${escapeHtml(h.title)}</strong>
           <div class="small muted">${h.type === 'earned' ? 'Sold' : 'Bought with points'}
             · ${formatDate(h.date)}</div>
         </div>
@@ -148,7 +151,7 @@ async function loadPoints() {
 
 
 // ============================================
-// מפתחת 4 — מועדפים
+// מועדפים
 // ============================================
 
 async function loadFavorites() {
@@ -174,14 +177,14 @@ async function loadFavorites() {
           <div class="card">
             <a href="/product.html?id=${p._id}">
               <div class="card-media">
-                <img src="${p.images?.[0] || ''}" alt="${p.title}">
+                <img src="${p.images?.[0] || ''}" alt="${escapeHtml(p.title)}">
                 ${p.status === 'sold'
                   ? '<span class="badge badge-sold card-fav">Sold</span>' : ''}
               </div>
             </a>
             <div class="card-body">
-              <div class="card-brand">${p.brand || ''}</div>
-              <div class="card-title">${p.title}</div>
+              <div class="card-brand">${escapeHtml(p.brand)}</div>
+              <div class="card-title">${escapeHtml(p.title)}</div>
               <div class="card-meta">${p.size} · ${p.condition}</div>
               <div class="card-price">${formatPrice(p.price)}</div>
 
@@ -216,8 +219,12 @@ async function removeFavorite(productId) {
 
 
 // ============================================
-// מפתחת 4 — הזמנות
+// ההזמנות שלי
 // ============================================
+// אין כאן כפתור ביטול בכוונה:
+// קונה שקיבלה את הפריט פיזית הייתה יכולה לבטל
+// ולהשאיר את המוכרת בלי הפריט ובלי התמורה.
+// ביטול עובר דרך המנהלת, שרואה את שני הצדדים.
 
 async function loadMyOrders() {
   const box = document.getElementById('myOrders');
@@ -237,29 +244,38 @@ async function loadMyOrders() {
       <div class="order-row">
         <img src="${o.productId?.images?.[0] || ''}" alt="">
         <div class="order-info">
-          <strong>${o.productId?.title || 'Item'}</strong>
+          <strong>${escapeHtml(o.productId?.title) || 'Item'}</strong>
           <div class="small muted">
             ${formatPrice(o.price)} · paid with ${o.paymentMethod}
             · ${formatDate(o.createdAt)}
           </div>
-          <div class="small muted">Seller: ${o.sellerId?.name || '—'}</div>
+          <div class="small muted">
+            Seller: ${escapeHtml(o.sellerId?.name) || '—'}
+          </div>
         </div>
         <div>
           <span class="badge ${o.status === 'cancelled' ? 'badge-cancel' : ''}">
             ${o.status}
           </span>
-          ${o.status === 'completed' ? `
-            <button class="btn btn-ghost btn-sm danger-link"
-                    onclick="cancelMyOrder('${o._id}')">Cancel</button>
-          ` : ''}
         </div>
       </div>
-    `).join('');
+    `).join('') + `
+      <p class="muted small mt">
+        Something wrong with an order?
+        <a href="/contact.html" class="contact-link">Contact us</a>
+        and we'll help.
+      </p>
+    `;
 
   } catch (err) {
     box.innerHTML = `<p class="field-error">${err.message}</p>`;
   }
 }
+
+
+// ============================================
+// המכירות שלי
+// ============================================
 
 async function loadMySales() {
   const box = document.getElementById('mySales');
@@ -279,11 +295,13 @@ async function loadMySales() {
       <div class="order-row">
         <img src="${o.productId?.images?.[0] || ''}" alt="">
         <div class="order-info">
-          <strong>${o.productId?.title || 'Item'}</strong>
+          <strong>${escapeHtml(o.productId?.title) || 'Item'}</strong>
           <div class="small muted">
             ${formatPrice(o.price)} · ${formatDate(o.createdAt)}
           </div>
-          <div class="small muted">Buyer: ${o.buyerId?.name || '—'}</div>
+          <div class="small muted">
+            Buyer: ${escapeHtml(o.buyerId?.name) || '—'}
+          </div>
         </div>
         <div>
           <span class="pts-amount earned">+${o.pointsEarned}</span>
@@ -294,19 +312,6 @@ async function loadMySales() {
 
   } catch (err) {
     box.innerHTML = `<p class="field-error">${err.message}</p>`;
-  }
-}
-
-async function cancelMyOrder(orderId) {
-  if (!confirm('Cancel this order? The item will return to the shop.')) return;
-
-  try {
-    await api(`/api/orders/${orderId}`, { method: 'DELETE' });
-    showToast('Order cancelled', 'success');
-    loadMyOrders();
-    loadProfile();   // הנקודות השתנו
-  } catch (err) {
-    showToast(err.message, 'error');
   }
 }
 
