@@ -1,34 +1,68 @@
-/* ============ Fonts ============ */
+/* ============================================================
+   ReWear — גיליון העיצוב של כל האתר
+   ============================================================
+   הקובץ בנוי בשכבות:
+   1. משתנים (Tokens) — צבעים, מרווחים, פונטים
+   2. Reset ובסיס — תגיות HTML
+   3. רכיבים משותפים — כפתורים, טפסים, כרטיסים, טבלאות
+   4. עמודים ספציפיים — בית, חנות, מוצר, תשלום, פרופיל, ניהול
+   5. רספונסיביות
+
+   ⚠️ הקובץ משותף לכל הצוות.
+   git pull לפני שנוגעים בו, ודוחפים מהר אחרי.
+   ============================================================ */
+
+
+/* ============ פונטים ============ */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
 
-/* ============ Tokens ============ */
+
+/* ============================================================
+   1. משתנים
+   ============================================================
+   כל צבע ומרווח מוגדר כאן פעם אחת.
+   רוצות לשנות את הירוק של האתר? שורה אחת כאן
+   ומשתנה בכל מקום. אף פעם לא כותבים צבע קשיח בקוד.
+   ============================================================ */
 :root {
-  --paper:      #F5F4F1;
-  --surface:    #FFFFFF;
-  --surface-2:  #EDEBE6;
-  --ink:        #16181C;
-  --ink-soft:   #5A6068;
-  --ink-faint:  #9AA0A6;
-  --line:       #DEDCD6;
+  /* רקעים */
+  --paper:      #F5F4F1;   /* רקע העמוד */
+  --surface:    #FFFFFF;   /* כרטיסים ופאנלים */
+  --surface-2:  #EDEBE6;   /* רקע משני, hover */
 
-  --pine:       #24453A;
-  --pine-dark:  #1A3329;
-  --clay:       #C9705C;
-  --danger:     #B3423A;
-  --ok:         #2F7A54;
+  /* טקסט */
+  --ink:        #16181C;   /* טקסט ראשי */
+  --ink-soft:   #5A6068;   /* טקסט משני */
+  --ink-faint:  #9AA0A6;   /* טקסט חלש, placeholder */
+  --line:       #DEDCD6;   /* גבולות */
 
+  /* צבעי מותג */
+  --pine:       #24453A;   /* ירוק ראשי — כפתורים, הדגשות */
+  --pine-dark:  #1A3329;   /* ירוק כהה — hover */
+  --clay:       #C9705C;   /* חימר — נקודות, הדגשה שנייה */
+  --danger:     #B3423A;   /* אדום — מחיקה ושגיאות */
+  --ok:         #2F7A54;   /* ירוק הצלחה */
+
+  /* צורה */
   --radius:     10px;
   --radius-sm:  6px;
   --shadow:     0 1px 2px rgba(22,24,28,.06), 0 4px 16px rgba(22,24,28,.06);
   --shadow-lg:  0 8px 32px rgba(22,24,28,.12);
 
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-ui:      'Inter', -apple-system, 'Segoe UI', sans-serif;
+  /* טיפוגרפיה */
+  --font-display: 'Fraunces', Georgia, serif;      /* כותרות */
+  --font-ui:      'Inter', -apple-system, 'Segoe UI', sans-serif;  /* הכל השאר */
 
-  --nav-h: 68px;
+  --nav-h: 68px;   /* גובה סרגל הניווט */
 }
 
-/* ============ Reset ============ */
+
+/* ============================================================
+   2. Reset ובסיס
+   ============================================================ */
+
+/* border-box גורם ל-padding להיכלל ברוחב,
+   וזה מונע חישובי רוחב מבלבלים */
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
@@ -41,6 +75,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* כותרות בפונט הסריף, שאר הטקסט בסאנס */
 h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 700;
@@ -48,6 +83,9 @@ h1, h2, h3 {
   margin: 0 0 .5em;
   letter-spacing: -.01em;
 }
+
+/* clamp נותן גודל שמשתנה לפי רוחב המסך,
+   בין מינימום למקסימום — בלי media query */
 h1 { font-size: clamp(32px, 5vw, 46px); }
 h2 { font-size: clamp(24px, 3.5vw, 32px); }
 h3 { font-size: 20px; }
@@ -57,14 +95,23 @@ p { margin: 0 0 1em; }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
 
+/* עוטף שמרכז את התוכן ומגביל את הרוחב */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
 }
+
+/* מרווח סטנדרטי לכל עמוד פנימי */
 .page { min-height: 60vh; padding: 40px 0 80px; }
 
-/* ============ Buttons ============ */
+
+/* ============================================================
+   3. רכיבים משותפים
+   ============================================================ */
+
+/* ---------- כפתורים ---------- */
+/* שימוש: <button class="btn btn-primary">  או  <a class="btn btn-outline"> */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -80,26 +127,42 @@ img { max-width: 100%; display: block; }
   transition: background .15s, border-color .15s, opacity .15s;
   white-space: nowrap;
 }
-.btn-primary   { background: var(--pine); color: #fff; }
+
+.btn-primary       { background: var(--pine); color: #fff; }
 .btn-primary:hover { background: var(--pine-dark); }
-.btn-outline   { background: transparent; color: var(--ink); border-color: var(--line); }
+
+.btn-outline       { background: transparent; color: var(--ink); border-color: var(--line); }
 .btn-outline:hover { border-color: var(--ink); }
-.btn-ghost     { background: transparent; color: var(--ink-soft); }
-.btn-ghost:hover { color: var(--ink); }
-.btn-danger    { background: var(--danger); color: #fff; }
-.btn-sm  { padding: 8px 16px; font-size: 14px; }
-.btn-lg  { padding: 14px 30px; font-size: 16px; }
+
+.btn-ghost         { background: transparent; color: var(--ink-soft); }
+.btn-ghost:hover   { color: var(--ink); }
+
+.btn-danger        { background: var(--danger); color: #fff; }
+
+/* גדלים ורוחב */
+.btn-sm    { padding: 8px 16px;  font-size: 14px; }
+.btn-lg    { padding: 14px 30px; font-size: 16px; }
 .btn-block { width: 100%; }
+
+/* כפתור נעול — בזמן שליחה למשל */
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 
-/* ============ Forms ============ */
+
+/* ---------- טפסים ---------- */
+/* המבנה הקבוע:
+   <div class="field">
+     <label for="x">Label</label>
+     <input class="input" id="x">
+   </div>                                        */
 .field { margin-bottom: 18px; }
+
 .field label {
   display: block;
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 6px;
 }
+
 .input, .select, .textarea {
   width: 100%;
   font-family: var(--font-ui);
@@ -110,16 +173,32 @@ img { max-width: 100%; display: block; }
   border-radius: var(--radius-sm);
   color: var(--ink);
 }
+
+/* טבעת מיקוד — מחליפה את ה-outline הכחול של הדפדפן */
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
   border-color: var(--pine);
   box-shadow: 0 0 0 3px rgba(36,69,58,.1);
 }
+
 .textarea { min-height: 110px; resize: vertical; }
-.field-error { color: var(--danger); font-size: 13px; margin-top: 5px; }
+
+/* הודעת שגיאה מתחת לשדה */
+.field-error { color: var(--danger);    font-size: 13px; margin-top: 5px; }
+/* טקסט עזר, למשל "לפחות 6 תווים" */
 .field-hint  { color: var(--ink-faint); font-size: 13px; margin-top: 5px; }
 
-/* ============ Navbar ============ */
+
+/* ---------- סרגל ניווט ---------- */
+/* נבנה מ-JavaScript ב-common.js לתוך <div id="navbar"> */
+#navbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: sticky;   /* נשאר למעלה בגלילה */
+  top: 0;
+  z-index: 100;
+}
+
 .nav {
   height: var(--nav-h);
   display: flex;
@@ -129,21 +208,18 @@ img { max-width: 100%; display: block; }
   margin: 0 auto;
   padding: 0 24px;
 }
-#navbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
+
 .nav-logo {
   font-family: var(--font-display);
   font-size: 25px;
   font-weight: 700;
   letter-spacing: -.02em;
 }
+
+/* flex: 1 דוחף את הקישורים הימניים לקצה */
 .nav-center { display: flex; gap: 26px; flex: 1; }
 .nav-right  { display: flex; gap: 14px; align-items: center; }
+
 .nav-link {
   font-size: 15px;
   font-weight: 500;
@@ -153,7 +229,9 @@ img { max-width: 100%; display: block; }
 }
 .nav-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
 
+/* עיגול האווטאר עם האות הראשונה של השם */
 .nav-user { position: relative; }
+
 .nav-avatar {
   width: 38px; height: 38px;
   border-radius: 50%;
@@ -165,6 +243,8 @@ img { max-width: 100%; display: block; }
   font-weight: 600;
   cursor: pointer;
 }
+
+/* התפריט הנפתח — מוסתר עד שמוסיפים לו .open ב-JS */
 .nav-dropdown {
   display: none;
   position: absolute;
@@ -179,6 +259,7 @@ img { max-width: 100%; display: block; }
   z-index: 200;
 }
 .nav-dropdown.open { display: block; }
+
 .nav-dropdown-head {
   padding: 10px 12px;
   border-bottom: 1px solid var(--line);
@@ -186,6 +267,7 @@ img { max-width: 100%; display: block; }
 }
 .nav-dropdown-head strong { display: block; font-size: 15px; }
 .nav-dropdown-head span   { font-size: 13px; color: var(--clay); font-weight: 600; }
+
 .nav-dropdown a,
 .nav-dropdown button {
   display: block;
@@ -203,12 +285,16 @@ img { max-width: 100%; display: block; }
 .nav-dropdown a:hover,
 .nav-dropdown button:hover { background: var(--surface-2); }
 
-/* ============ Product card ============ */
+
+/* ---------- רשת וכרטיסי מוצר ---------- */
+/* auto-fill + minmax: כמה עמודות שנכנסות,
+   כל אחת לפחות 230px. מתאים את עצמו לכל מסך */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 24px;
 }
+
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -217,55 +303,49 @@ img { max-width: 100%; display: block; }
   transition: box-shadow .18s, transform .18s;
 }
 .card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+
+/* aspect-ratio: 1 שומר שכל התמונות ריבועיות
+   וכל הכרטיסים באותו גובה, גם אם התמונות בפרופורציות שונות */
 .card-media { position: relative; aspect-ratio: 1; background: var(--surface-2); }
 .card-media img { width: 100%; height: 100%; object-fit: cover; }
 
+/* הלב — פינה ימנית עליונה */
 .card-heart {
   position: absolute;
   top: 12px;
   right: 12px;
-
   width: 38px;
   height: 38px;
-
   display: grid;
   place-items: center;
-
-  background: rgba(255, 255, 255, .94);
+  background: rgba(255,255,255,.94);
   border-radius: 50%;
-
   font-size: 22px;
   line-height: 1;
   color: var(--ink);
-
   cursor: pointer;
   user-select: none;
-
-  box-shadow: 0 2px 8px rgba(22, 24, 28, .15);
-
+  box-shadow: 0 2px 8px rgba(22,24,28,.15);
   z-index: 2;
-
   transition: transform .15s, background .15s;
 }
+.card-heart:hover { transform: scale(1.08); background: #fff; }
 
-.card-heart:hover {
-  transform: scale(1.08);
-  background: #fff;
-}
+/* לב מלא = הפריט במועדפים. ה-JS מחליף את data-favorite */
+.card-heart[data-favorite="true"] { color: var(--pine); }
 
-.card-heart[data-favorite="true"] {
-  color: var(--pine);
-}
-
+/* תגית "Sold" — פינה שמאלית, כדי שלא תתנגש עם הלב */
 .card-fav {
-  position: absolute; top: 10px; right: 10px;
-  width: 34px; height: 34px;
-  border: none; border-radius: 50%;
-  background: rgba(255,255,255,.92);
-  cursor: pointer; font-size: 16px; line-height: 1;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
 }
-.card-body { padding: 13px 14px 15px; }
+
+.card-body  { padding: 13px 14px 15px; }
 .card-brand { font-size: 12.5px; color: var(--ink-faint); font-weight: 500; }
+
+/* ellipsis חותך שם ארוך במקום לשבור את הכרטיס */
 .card-title {
   font-size: 15px; font-weight: 600;
   margin: 2px 0 6px;
@@ -274,7 +354,8 @@ img { max-width: 100%; display: block; }
 .card-meta  { font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
 .card-price { font-size: 17px; font-weight: 700; }
 
-/* ============ Badges ============ */
+
+/* ---------- תגיות ---------- */
 .badge {
   display: inline-block;
   font-size: 11.5px;
@@ -284,18 +365,29 @@ img { max-width: 100%; display: block; }
   background: var(--surface-2);
   color: var(--ink-soft);
 }
-.badge-sold  { background: var(--ink); color: #fff; }
-.badge-new   { background: var(--pine); color: #fff; }
-.badge-points{ background: var(--clay); color: #fff; }
+.badge-sold   { background: var(--ink);    color: #fff; }  /* נמכר */
+.badge-new    { background: var(--pine);   color: #fff; }  /* מנהלת */
+.badge-points { background: var(--clay);   color: #fff; }  /* שולם בנקודות */
+.badge-card   { background: var(--pine);   color: #fff; }  /* שולם באשראי */
+.badge-cancel { background: var(--danger); color: #fff; }  /* הזמנה מבוטלת */
 
-/* ============ Panels & tabs ============ */
+
+/* ---------- פאנלים וטאבים ---------- */
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 24px;
 }
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 26px; }
+
+/* מבנה הטאבים:
+   <button class="tab" data-tab="x">  +  <section id="tab-x" class="tab-panel"> */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 26px;
+}
 .tab {
   padding: 11px 18px;
   font-family: var(--font-ui);
@@ -307,9 +399,37 @@ img { max-width: 100%; display: block; }
 }
 .tab.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--pine); }
 
-/* ============ States ============ */
+
+/* ---------- טבלאות ---------- */
+/* לעטוף תמיד ב-<div class="panel" style="overflow-x:auto">
+   כדי שטבלה רחבה תגלול בפנים ולא תשבור את העמוד */
+.table { width: 100%; border-collapse: collapse; font-size: 15px; }
+
+.table th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.table tr:last-child td { border-bottom: none; }
+
+.row-actions { white-space: nowrap; text-align: right; }
+.danger-link { color: var(--danger); }
+
+
+/* ---------- מצבי טעינה וריק ---------- */
+/* .empty — מה שמוצג כשאין תוצאות. חשוב בכל רשימה! */
 .empty { text-align: center; padding: 60px 20px; color: var(--ink-soft); }
 .empty h3 { color: var(--ink); }
+
 .spinner {
   width: 26px; height: 26px;
   border: 2.5px solid var(--line);
@@ -320,7 +440,9 @@ img { max-width: 100%; display: block; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ============ Toast ============ */
+
+/* ---------- הודעות קופצות ---------- */
+/* נוצרות מ-showToast() ב-common.js */
 .toast {
   position: fixed;
   bottom: 26px; left: 50%;
@@ -335,11 +457,13 @@ img { max-width: 100%; display: block; }
   transition: opacity .25s, transform .25s;
   z-index: 999;
 }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast-error   { background: var(--danger); }
 .toast-success { background: var(--ok); }
 
-/* ============ Footer ============ */
+
+/* ---------- Footer ---------- */
+/* נבנה מ-JavaScript ב-common.js לתוך <div id="footer"> */
 .footer {
   background: var(--surface);
   border-top: 1px solid var(--line);
@@ -353,10 +477,10 @@ img { max-width: 100%; display: block; }
   gap: 36px;
 }
 .footer-logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
-.footer h4 { font-size: 14px; margin-bottom: 12px; }
-.footer a  { display: block; font-size: 14.5px; color: var(--ink-soft); padding: 3px 0; }
+.footer h4   { font-size: 14px; margin-bottom: 12px; }
+.footer a    { display: block; font-size: 14.5px; color: var(--ink-soft); padding: 3px 0; }
 .footer a:hover { color: var(--ink); }
-.footer p  { font-size: 14.5px; color: var(--ink-soft); max-width: 32ch; }
+.footer p    { font-size: 14.5px; color: var(--ink-soft); max-width: 32ch; }
 .footer-bottom {
   border-top: 1px solid var(--line);
   padding: 18px 24px;
@@ -365,30 +489,27 @@ img { max-width: 100%; display: block; }
   color: var(--ink-faint);
 }
 
-/* ============ Utilities ============ */
-.flex     { display: flex; }
-.between  { justify-content: space-between; }
-.center   { align-items: center; }
-.gap-sm   { gap: 8px; }
-.gap      { gap: 16px; }
-.mt   { margin-top: 20px; }
-.mb   { margin-bottom: 20px; }
-.muted{ color: var(--ink-soft); }
-.small{ font-size: 14px; }
-.hidden { display: none !important; }
 
-/* ============ Responsive ============ */
-@media (max-width: 860px) {
-  .footer-inner { grid-template-columns: 1fr 1fr; }
-  .nav-center { display: none; }
-}
-@media (max-width: 560px) {
-  .container { padding: 0 16px; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-  .footer-inner { grid-template-columns: 1fr; }
-}
+/* ---------- מחלקות עזר ---------- */
+/* מחלקות קטנות שמחליפות style= בתוך ה-HTML */
+.flex    { display: flex; }
+.between { justify-content: space-between; }
+.center  { align-items: center; }
+.gap-sm  { gap: 8px; }
+.gap     { gap: 16px; }
+.mt      { margin-top: 20px; }
+.mb      { margin-bottom: 20px; }
+.muted   { color: var(--ink-soft); }
+.small   { font-size: 14px; }
+.lead    { font-size: 17px; color: var(--ink-soft); }
+.hidden  { display: none !important; }   /* מסתיר אלמנט — בשימוש בטאבים */
 
-/* ============ Home ============ */
+
+/* ============================================================
+   4. עמודים
+   ============================================================ */
+
+/* ---------- עמוד הבית ---------- */
 .hero {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
@@ -398,6 +519,7 @@ img { max-width: 100%; display: block; }
 .hero h1 { margin-bottom: 18px; }
 .hero p  { font-size: 18px; color: var(--ink-soft); margin-bottom: 30px; max-width: 46ch; }
 
+/* שלושת האריחים: Women / Men / Kids */
 .cat-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -417,115 +539,15 @@ img { max-width: 100%; display: block; }
 }
 .cat-tile:hover { background: var(--pine); color: #fff; border-color: var(--pine); }
 
-@media (max-width: 560px) {
-  .hero { padding: 48px 0 54px; }
-  .cat-row { grid-template-columns: 1fr; gap: 12px; }
-  .cat-tile { padding: 26px; font-size: 20px; }
-}
 
-/* ============ Auth ============ */
-.auth-box {
-  max-width: 420px;
-  margin: 40px auto;
-}
+/* ---------- התחברות והרשמה ---------- */
+.auth-box { max-width: 420px; margin: 40px auto; }
 .auth-box .tabs { margin-bottom: 24px; }
-.auth-box .tab { flex: 1; }
+.auth-box .tab  { flex: 1; }   /* שני הטאבים ברוחב שווה */
 
 
-/* ============ Profile ============ */
-.profile-head {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 32px;
-}
-.profile-avatar {
-  width: 68px; height: 68px;
-  border-radius: 50%;
-  background: var(--pine);
-  color: #fff;
-  display: grid; place-items: center;
-  font-family: var(--font-display);
-  font-size: 28px; font-weight: 700;
-  flex-shrink: 0;
-}
-.profile-head h1 { font-size: 28px; margin: 0 0 2px; }
-.profile-head p  { margin: 0; }
-
-.points-box {
-  margin-left: auto;
-  text-align: center;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px 26px;
-}
-.points-value {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 30px; font-weight: 700;
-  color: var(--clay);
-  line-height: 1;
-}
-.points-label { font-size: 13px; color: var(--ink-soft); }
-
-@media (max-width: 560px) {
-  .profile-head { flex-wrap: wrap; }
-  .points-box { margin-left: 0; width: 100%; }
-  .tabs { overflow-x: auto; }
-}
-
-/* ============ Points ============ */
-.points-summary {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-.stat-label { font-size: 14px; color: var(--ink-soft); margin-bottom: 4px; }
-.stat-value {
-  font-family: var(--font-display);
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1;
-}
-.pts-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--line);
-}
-.pts-row:last-child { border-bottom: none; }
-.pts-amount { font-size: 17px; font-weight: 700; }
-.pts-amount.earned { color: var(--ok); }
-.pts-amount.spent  { color: var(--clay); }
-
-@media (max-width: 560px) {
-  .points-summary { grid-template-columns: 1fr; }
-}
-
-
-/* ============ Table ============ */
-.table { width: 100%; border-collapse: collapse; font-size: 15px; }
-.table th {
-  text-align: left;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-soft);
-  padding: 0 12px 10px;
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
-.table td {
-  padding: 12px;
-  border-bottom: 1px solid var(--line);
-  vertical-align: middle;
-}
-.table tr:last-child td { border-bottom: none; }
-.row-actions { white-space: nowrap; text-align: right; }
-.danger-link { color: var(--danger); }
-
-/* ============ Shop layout ============ */
+/* ---------- חנות: פריסה וסינון ---------- */
+/* עמודה קבועה לסינון + עמודה גמישה לתוצאות */
 .shop-layout {
   display: grid;
   grid-template-columns: 230px 1fr;
@@ -555,13 +577,10 @@ img { max-width: 100%; display: block; }
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
-.filter-btn:hover { background: var(--surface-2); color: var(--ink); }
-.filter-btn.active {
-  background: var(--pine);
-  color: #fff;
-  font-weight: 600;
-}
+.filter-btn:hover  { background: var(--surface-2); color: var(--ink); }
+.filter-btn.active { background: var(--pine); color: #fff; font-weight: 600; }
 
+/* תיבות סימון של מצב הפריט */
 .check {
   display: flex;
   align-items: center;
@@ -573,13 +592,15 @@ img { max-width: 100%; display: block; }
 }
 .check input { accent-color: var(--pine); cursor: pointer; }
 
-/* ============ Product page ============ */
+
+/* ---------- עמוד מוצר ---------- */
 .product-page {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr;   /* גלריה | פרטים */
   gap: 44px;
   align-items: start;
 }
+
 .product-gallery img#mainImage {
   width: 100%;
   aspect-ratio: 1;
@@ -588,11 +609,9 @@ img { max-width: 100%; display: block; }
   border: 1px solid var(--line);
   background: var(--surface-2);
 }
-.product-thumbs {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-}
+
+/* התמונות הקטנות — לחיצה מחליפה את הראשית */
+.product-thumbs { display: flex; gap: 10px; margin-top: 12px; }
 .product-thumb {
   width: 72px;
   height: 72px;
@@ -608,25 +627,28 @@ img { max-width: 100%; display: block; }
 .product-info .card-price { font-size: 26px; margin-bottom: 20px; }
 .product-info .card-price .muted { font-size: 16px; font-weight: 500; }
 .product-info p { font-size: 15px; margin-bottom: 8px; }
-.product-info .panel { margin-top: 24px; padding: 18px; }
+.product-info .panel    { margin-top: 24px; padding: 18px; }
 .product-info .panel h3 { font-size: 16px; margin-bottom: 8px; }
-.product-info .panel p { margin: 0; color: var(--ink-soft); }
+.product-info .panel p  { margin: 0; color: var(--ink-soft); }
 
-/* ============ Checkout ============ */
-.checkout-layout {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 36px;
-  align-items: start;
-}
+
+/* ---------- עמוד התשלום ---------- */
+.checkout-page { max-width: 620px; margin: 0 auto; }
+.checkout-page h1 { font-size: 34px; margin-bottom: 14px; }
+.checkout-page h2 { font-size: 18px; margin-bottom: 16px; }
+
+/* שורת "מצב הדגמה" */
 .demo-note {
   background: var(--surface-2);
   border-inline-start: 3px solid var(--clay);
   padding: 12px 16px;
   border-radius: var(--radius-sm);
   font-size: 14.5px;
+  line-height: 1.55;
   margin-bottom: 24px;
 }
+
+/* בחירת אמצעי תשלום */
 .pay-option {
   display: flex;
   align-items: center;
@@ -636,14 +658,23 @@ img { max-width: 100%; display: block; }
   border-radius: var(--radius-sm);
   margin-bottom: 10px;
   cursor: pointer;
+  font-weight: 500;
+  transition: border-color .15s, background .15s;
 }
+
+/* :has בודק אם יש בפנים רדיו מסומן — מדגיש את הבחירה */
 .pay-option:has(input:checked) {
   border-color: var(--pine);
   background: var(--surface-2);
 }
-.pay-option input { accent-color: var(--pine); }
-.pay-option input:disabled + span { color: var(--ink-faint); }
+/* אין מספיק נקודות — האפשרות מעומעמת */
+.pay-option:has(input:disabled) { opacity: .5; cursor: not-allowed; }
 
+.pay-option input { accent-color: var(--pine); width: auto; margin: 0; cursor: pointer; }
+
+#pointsMessage { font-size: 13.5px; color: var(--ink-soft); font-weight: 400; }
+
+/* שדות הכרטיס — שם ומספר ברוחב מלא, תוקף ו-CVV חצי־חצי */
 .card-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -652,157 +683,20 @@ img { max-width: 100%; display: block; }
 .card-fields .field:first-child,
 .card-fields .field:nth-child(2) { grid-column: 1 / -1; }
 
+/* סיכום הפריט — גם בתשלום וגם במסך האישור */
 .summary-item {
   display: flex;
   gap: 14px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 16px;
+  align-items: center;
 }
 .summary-item img {
   width: 76px; height: 76px;
   object-fit: cover;
   border-radius: var(--radius-sm);
-}
-
-/* ============ Responsive ============ */
-@media (max-width: 860px) {
-  .shop-layout,
-  .product-page,
-  .checkout-layout { grid-template-columns: 1fr; gap: 24px; }
-}
-
-/* ============ Checkout (עובד עם המבנה הנוכחי) ============ */
-.checkout-page {
-  max-width: 620px;
-  margin: 0 auto;
-  padding: 40px 24px 80px;
-}
-.checkout-page h1 {
-  font-size: 34px;
-  margin-bottom: 8px;
-}
-
-/* שורת מצב ההדגמה */
-.checkout-page > p:first-of-type {
   background: var(--surface-2);
-  border-inline-start: 3px solid var(--clay);
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14.5px;
-  margin-bottom: 28px;
-}
-.checkout-page > p:first-of-type strong { font-weight: 600; }
-
-/* כל section הוא כרטיס */
-.checkout-page section {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  margin-bottom: 18px;
-}
-.checkout-page section h2 {
-  font-size: 18px;
-  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
-/* סיכום הפריט */
-#productSummary img {
-  width: 110px !important;
-  height: 110px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  float: inline-start;
-  margin-inline-end: 18px;
-}
-#productSummary h3 { font-size: 19px; margin-bottom: 6px; }
-#productSummary p  { font-size: 20px; font-weight: 700; margin: 0; }
-#productSummary::after { content: ''; display: block; clear: both; }
-
-/* תוויות ושדות */
-.checkout-page label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-.checkout-page input[type="text"],
-.checkout-page input[type="password"],
-.checkout-page select {
-  width: 100%;
-  font-family: var(--font-ui);
-  font-size: 15px;
-  padding: 11px 13px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  margin-bottom: 16px;
-}
-.checkout-page input:focus,
-.checkout-page select:focus {
-  outline: none;
-  border-color: var(--pine);
-  box-shadow: 0 0 0 3px rgba(36,69,58,.1);
-}
-
-/* אמצעי תשלום — התוויות עם הרדיו */
-.checkout-page label:has(input[type="radio"]) {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-}
-.checkout-page label:has(input[type="radio"]:checked) {
-  border-color: var(--pine);
-  background: var(--surface-2);
-}
-.checkout-page label:has(input[type="radio"]:disabled) {
-  opacity: .5;
-  cursor: not-allowed;
-}
-.checkout-page input[type="radio"] {
-  accent-color: var(--pine);
-  width: auto;
-  margin: 0;
-  cursor: pointer;
-}
-.checkout-page br { display: none; }
-
-#pointsMessage {
-  font-size: 13.5px;
-  color: var(--ink-soft);
-  font-weight: 400;
-}
-
-/* כפתור התשלום */
-#payButton {
-  display: block;
-  width: 100%;
-  font-family: var(--font-ui);
-  font-size: 16px;
-  font-weight: 600;
-  padding: 15px;
-  background: var(--pine);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  margin-top: 8px;
-  transition: background .15s;
-}
-#payButton:hover    { background: var(--pine-dark); }
-#payButton:disabled { opacity: .45; cursor: not-allowed; }
-
-/* הודעה בתחתית */
 #checkoutMessage {
   text-align: center;
   font-size: 15px;
@@ -811,15 +705,173 @@ img { max-width: 100%; display: block; }
   min-height: 22px;
 }
 
-@media (max-width: 560px) {
-  .checkout-page { padding: 24px 16px 60px; }
-  #productSummary img { float: none; margin: 0 0 14px; }
+/* מסך האישור שמוצג אחרי רכישה מוצלחת */
+.success-panel { text-align: center; padding: 44px 32px; }
+.success-panel h1 { font-size: 30px; margin-bottom: 8px; }
+.success-panel .lead { font-size: 17px; }
+.success-panel .flex { justify-content: center; }
+.success-panel .demo-note,
+.success-panel .summary-item { text-align: left; }
+
+.success-mark {
+  width: 56px; height: 56px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--ok);
+  color: #fff;
+  font-size: 28px;
+  display: grid;
+  place-items: center;
 }
 
 
-/* ============ Admin orders ============ */
+/* ---------- פרופיל: כותרת ---------- */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+.profile-avatar {
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  background: var(--pine);
+  color: #fff;
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 700;
+  flex-shrink: 0;
+}
+.profile-head h1 { font-size: 28px; margin: 0 0 2px; }
+.profile-head p  { margin: 0; }
+
+/* קופסת הנקודות — margin-left:auto דוחפת אותה לקצה */
+.points-box {
+  margin-left: auto;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 26px;
+}
+.points-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 30px; font-weight: 700;
+  color: var(--clay);
+  line-height: 1;
+}
+.points-label { font-size: 13px; color: var(--ink-soft); }
+
+
+/* ---------- פרופיל: נקודות ---------- */
+.points-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.stat-label { font-size: 14px; color: var(--ink-soft); margin-bottom: 4px; }
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* שורת פעילות בהיסטוריית הנקודות */
+.pts-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+.pts-row:last-child { border-bottom: none; }
+
+.pts-amount { font-size: 17px; font-weight: 700; }
+.pts-amount.earned { color: var(--ok); }     /* קיבלה נקודות */
+.pts-amount.spent  { color: var(--clay); }   /* הוציאה נקודות */
+
+
+/* ---------- פרופיל: הזמנות ומכירות ---------- */
+/* רשימה ולא רשת — בהזמנה חשוב לראות תאריך וסטטוס,
+   וזה קריא יותר בשורות */
+.order-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.order-row:last-child { border-bottom: none; }
+
+/* flex-shrink: 0 מונע מהתמונה להתכווץ או להתנפח */
+.order-row img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+
+.order-row .order-info { flex: 1; min-width: 0; }
+.order-row .order-info strong {
+  display: block;
+  font-size: 15.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* הצד הימני — סטטוס או נקודות */
+.order-row > div:last-child { text-align: right; flex-shrink: 0; }
+
+
+/* ---------- העלאת תמונות ---------- */
+#image-preview {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  min-height: 80px;
+}
+.upload-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+
+
+/* ---------- ניהול: כרטיסים וגרפים ---------- */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.stat-card { padding: 20px 22px; }
+.stat-card .stat-value { font-size: 32px; }
+.stat-value.clay { color: var(--clay); }
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+/* min-width: 0 חובה! בלעדיו Chart.js מרחיב את העמודה
+   בלי גבול והפריסה נשברת */
+.charts-row .panel { min-width: 0; }
+.charts-row h3 { font-size: 17px; margin-bottom: 16px; }
+
+
+/* ---------- ניהול: טבלת הזמנות ---------- */
+/* vertical-align: top כי בכל תא יש כמה שורות */
 .orders-table td { vertical-align: top; padding-top: 14px; }
 
+/* תמונה + שם מוצר בתוך תא */
 .order-row-product {
   display: flex;
   align-items: flex-start;
@@ -840,6 +892,7 @@ img { max-width: 100%; display: block; }
   font-size: 14.5px;
 }
 
+/* פרטי קשר של קונה/מוכרת — המנהלת מקשרת ביניהן */
 .contact-cell {
   display: flex;
   flex-direction: column;
@@ -849,123 +902,68 @@ img { max-width: 100%; display: block; }
   line-height: 1.5;
 }
 .contact-cell strong { font-size: 14.5px; }
-.contact-link {
-  color: var(--pine);
-  text-decoration: none;
-}
+
+/* mailto: ו-tel: — לחיצה פותחת מייל או מחייגת */
+.contact-link { color: var(--pine); text-decoration: none; }
 .contact-link:hover { text-decoration: underline; }
 .contact-city { color: var(--ink-faint); }
 
-.badge-card   { background: var(--pine);   color: #fff; }
-.badge-cancel { background: var(--danger); color: #fff; }
 
-/* ============ Admin overview ============ */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 26px;
-}
-.stat-card { padding: 20px 22px; }
-.stat-card .stat-value { font-size: 32px; }
-.stat-value.clay { color: var(--clay); }
-
-.charts-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-.charts-row .panel { min-width: 0; }
-.charts-row h3 { font-size: 17px; margin-bottom: 16px; }
-
-@media (max-width: 860px) {
-  .stats-row  { grid-template-columns: repeat(2, 1fr); }
-  .charts-row { grid-template-columns: 1fr; }
-}
-@media (max-width: 480px) {
-  .stats-row { grid-template-columns: 1fr; }
-}
-
-/* ============ Image upload ============ */
-#image-preview {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-  min-height: 80px;
-}
-.upload-thumb {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-}
-
-/* ============ Checkout success ============ */
-.success-panel { text-align: center; padding: 44px 32px; }
-.success-panel h1 { font-size: 30px; margin-bottom: 8px; }
-.success-panel .lead { font-size: 17px; color: var(--ink-soft); }
-.success-panel .flex { justify-content: center; }
-.success-panel .demo-note,
-.success-panel .summary-item { text-align: left; }
-
-.success-mark {
-  width: 56px; height: 56px;
-  margin: 0 auto 18px;
-  border-radius: 50%;
-  background: var(--ok);
-  color: #fff;
-  font-size: 28px;
-  display: grid;
-  place-items: center;
-}
-
-/* ============ Admin messages ============ */
+/* ---------- ניהול: הודעות ---------- */
+/* הודעה יכולה להיות פסקה שלמה, אז מגבילים רוחב
+   ומאפשרים שבירת שורות */
 .msg-body {
   max-width: 320px;
   white-space: normal;
   line-height: 1.5;
 }
-tr:has(.badge-unread) { background: var(--surface-2); }
 
-/* ============ Profile orders ============ */
-.order-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
-}
-.order-row:last-child { border-bottom: none; }
 
-.order-row img {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  flex-shrink: 0;
-}
+/* ============================================================
+   5. רספונסיביות
+   ============================================================
+   כל ה-media queries מרוכזים כאן, מהמסך הרחב לצר.
+   ============================================================ */
 
-.order-row .order-info {
-  flex: 1;
-  min-width: 0;
-}
-.order-row .order-info strong {
-  display: block;
-  font-size: 15.5px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+@media (max-width: 860px) {
+  /* פריסות דו-עמודתיות הופכות לעמודה אחת */
+  .shop-layout,
+  .product-page,
+  .charts-row { grid-template-columns: 1fr; gap: 24px; }
 
-.order-row > div:last-child {
-  text-align: right;
-  flex-shrink: 0;
+  .stats-row    { grid-template-columns: repeat(2, 1fr); }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+
+  /* קישורי הניווט המרכזיים מוסתרים במסך צר */
+  .nav-center { display: none; }
 }
 
 @media (max-width: 560px) {
-  .order-row { gap: 12px; }
+  .container { padding: 0 16px; }
+
+  /* כרטיסים קטנים יותר — שניים בשורה בטלפון */
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+
+  .hero { padding: 48px 0 54px; }
+  .cat-row  { grid-template-columns: 1fr; gap: 12px; }
+  .cat-tile { padding: 26px; font-size: 20px; }
+
+  .footer-inner   { grid-template-columns: 1fr; }
+  .points-summary { grid-template-columns: 1fr; }
+
+  /* כותרת הפרופיל נשברת לשורות */
+  .profile-head { flex-wrap: wrap; }
+  .points-box   { margin-left: 0; width: 100%; }
+
+  /* הטאבים גוללים לצדדים במקום להידחס */
+  .tabs { overflow-x: auto; }
+
+  .order-row     { gap: 12px; }
   .order-row img { width: 52px; height: 52px; }
+
+  .checkout-page { padding: 0; }
+}
+
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr; }
 }
