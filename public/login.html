@@ -49,9 +49,9 @@
         </div>
         <div class="field">
           <label for="regCity">City</label>
-          <select class="select" id="regCity">
-            <option value="">Select a city</option>
-          </select>
+          <input class="input" id="regCity" list="cityList"
+          autocomplete="off" placeholder="Start typing...">
+         <div class="field-hint">Choose from the list</div>
         </div>
         <div class="field">
           <label for="regPhone">Phone</label>
@@ -62,6 +62,7 @@
       </div>
 
     </div>
+    <datalist id="cityList"></datalist>
   </main>
 
   <div id="footer"></div>

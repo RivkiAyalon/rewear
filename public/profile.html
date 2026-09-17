@@ -144,23 +144,10 @@
 
 
         <div class="field">
-
-          <label for="detCity">
-            City
-          </label>
-
-          <select
-            class="select"
-            id="detCity">
-
-            <option value="">
-              Select a city
-            </option>
-
-          </select>
-
+          <label for="detCity">City</label>
+          <input class="input" id="detCity" list="cityList"
+          autocomplete="off" placeholder="Start typing...">
         </div>
-
 
         <div class="field">
 
@@ -380,9 +367,8 @@
 
 <div class="field">
   <label for="city">Pickup city</label>
-  <select class="select" id="city" required>
-    <option value="">Select a city</option>
-  </select>
+  <input class="input" id="city" list="cityList"
+         autocomplete="off" required placeholder="Start typing...">
 </div>
 
           <div class="field">
@@ -466,7 +452,7 @@
       </div>
 
     </section>
-
+<datalist id="cityList"></datalist>
   </main>
 
 

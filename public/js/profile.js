@@ -49,14 +49,8 @@ async function loadProfile() {
     document.getElementById('detEmail').value = user.email;
     document.getElementById('detPhone').value = user.phone || '';
 
-    // העיר היא select שנטען מ-API, אז שומרים את הערך
-    // ב-dataset כדי ש-populateCities תחזיר אותו כשתסיים
-    const citySelect = document.getElementById('detCity');
-    citySelect.dataset.value = user.city || '';
-    citySelect.value = user.city || '';
-
-    // אם הרשימה עדיין לא נטענה, זה יציב את הערך כשהיא תסתיים
-    if (!citySelect.dataset.filled) populateCities('detCity');
+        // עכשיו זה input רגיל עם datalist, אז פשוט מציבים
+    document.getElementById('detCity').value = user.city || '';
 
   } catch (err) {
     showToast(err.message, 'error');

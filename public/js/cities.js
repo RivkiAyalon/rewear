@@ -55,10 +55,25 @@ async function populateCities(selectId = 'shippingCity') {
   if (current) select.value = current;
 }
 
+// ממלאת datalist — שדה טקסט עם השלמה אוטומטית.
+// עדיף על select כשיש 1500 אפשרויות:
+// מקלידים "חי" ומקבלים "חיפה" במקום לגלול.
+async function populateCityList(listId = 'cityList') {
+  const list = document.getElementById(listId);
+  if (!list) return;
+
+  // אם כבר מולא — לא ממלאים שוב
+  if (list.dataset.filled) return;
+  list.dataset.filled = 'true';
+
+  const cities = await loadCities();
+
+  list.innerHTML = cities
+    .map(c => `<option value="${c}">`)
+    .join('');
+}
+
 
 // כל קריאה בודקת אם האלמנט קיים בעמוד,
 // אז אפשר לקרוא לכולן בכל עמוד בלי חשש
-populateCities();             // checkout.html
-populateCities('regCity');    // login.html — הרשמה
-populateCities('detCity');    // profile.html — פרטים אישיים
-populateCities('city');       // profile.html — טופס פרסום מוצר
+populateCityList();   // רשימה משותפת לכל השדות באתר
