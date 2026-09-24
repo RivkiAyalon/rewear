@@ -1,3 +1,5 @@
+// שומר את המצב הנוכחי של החיפוש והפילטרים
+// כשהעמוד נטען מחדש, getParam קורא את הערכים מהURL ומכניס אותם שוב לstate
 const state = {
   page: Number(getParam('page')) || 1,
   sort: getParam('sort') || 'newest',
@@ -9,28 +11,33 @@ const state = {
   maxPrice: getParam('maxPrice') || '',
   condition: getParam('condition') || ''
 };
-
+//טוענת ומציגה את המוצרים לפי הstate
 async function loadProducts() {
   const box = document.getElementById('results');
   box.innerHTML = '<div class="spinner"></div>';
 
+  // יוצר אובייקט ריק לפרמטרים
   const params = new URLSearchParams();
-
+  // ממלא את האובייקט בערכים
   Object.entries(state).forEach(([k, v]) => {
     if (v) params.set(k, v);
   });
 
+  // מציג אותם ב־URL בלי לרענן את הדף
   history.replaceState(null, '', '?' + params);
 
   try {
+    // שולחת את התנאים לשרת
     const data = await api(`/api/products?${params}`);
+    // השרת מחזיר תשובה, כלומר מחזיר את המוצרים המתאימים
     const products = data.products || data;
+    // מביא שער המרה משקל לדולר
     const usdRate = await getUsdRate();
     renderPagination(data.pages || 1);
-
+    // מציג כמה מוצרים נמצאו
     document.getElementById('resultCount').textContent =
       `${data.total ?? products.length} items`;
-
+    // אם לא נמצאו מוצרים
     if (!products.length) {
       box.innerHTML = `
         <div class="empty">
@@ -40,17 +47,18 @@ async function loadProducts() {
       `;
       return;
     }
-
+    // יוצר כרטיס לכל מוצר
     box.innerHTML = `
   <div class="grid">
     ${products.map(p =>
       productCard({
         ...p,
+        // מחשב מחיר משוער בדולר
         usdPrice: Math.round(p.price * usdRate)
       })
     ).join('')}
   </div>`;
-
+  // מעדכן אילו לבבות מסומנים כמועדפים
   await refreshFavoriteHearts();
 
   } catch (err) {
@@ -58,10 +66,10 @@ async function loadProducts() {
       `<div class="empty"><h3>Could not load items</h3></div>`;
   }
 }
-
+// יוצרת את כפתורי Previous / Next
 function renderPagination(totalPages) {
   const el = document.getElementById('pagination');
-
+// אם יש רק עמוד אחד - אין צורך בדפדוף
   if (totalPages <= 1) {
     el.innerHTML = '';
     return;
@@ -82,14 +90,14 @@ function renderPagination(totalPages) {
       </button>
     </div>
   `;
-
+  // עובר לעמוד הקודם
   document.getElementById('prevPage').onclick = () => {
     if (state.page > 1) {
       state.page--;
       loadProducts();
     }
   };
-
+  // עובר לעמוד הבא
   document.getElementById('nextPage').onclick = () => {
     if (state.page < totalPages) {
       state.page++;
@@ -97,34 +105,36 @@ function renderPagination(totalPages) {
     }
   };
 }
-
+// מציג ב-select את המיון הנוכחי
 document.getElementById('sort').value = state.sort;
-
+// משנה מיון וטוען מחדש את המוצרים
 document.getElementById('sort').onchange = e => {
   state.sort = e.target.value;
+  // בכל שינוי מתחילים שוב מעמוד 1
   state.page = 1;
   loadProducts();
 };
 
 // שדה החיפוש
 const searchInput = document.getElementById('searchInput');
+// מציג חיפוש קיים מה-URL
 searchInput.value = state.search;
-
+// מבצעת חיפוש
 function doSearch() {
   state.search = searchInput.value.trim();
   state.page = 1;
   loadProducts();
 }
-
+// חיפוש בלחיצה על הכפתור
 document.getElementById('searchBtn').onclick = doSearch;
-
+// חיפוש גם בלחיצה על Enter
 searchInput.onkeydown = e => {
   if (e.key === 'Enter') doSearch();
 };
-
+// יוצרת את אזור הפילטרים
 function renderFilters() {
   const el = document.getElementById('filters');
-
+// בונה Gender, Price, Condition ו-Clear all
   el.innerHTML = `
     <div class="filter-group">
       <div class="flex between center">
@@ -185,10 +195,12 @@ function renderFilters() {
       Clear all
     </button>
   `;
-
+// מטפל בבחירת Gender
 document.querySelectorAll('[data-gender]').forEach(btn => {
   btn.onclick = () => {
+    // שומר את ה-Gender שנבחר
     state.gender = btn.dataset.gender;
+    // Category ו-Type תלויים ב-Gender ולכן מתאפסים
     state.category = '';
     state.type = '';
     state.page = 1;
@@ -200,7 +212,7 @@ document.querySelectorAll('[data-gender]').forEach(btn => {
 });
 
 const clearGender = document.getElementById('clearGender');
-
+// מנקה Gender וגם את הילדים שלו
 if (clearGender) {
   clearGender.onclick = () => {
     state.gender = '';
@@ -221,9 +233,9 @@ const clearPrice = document.getElementById('clearPrice');
 
 minPrice.value = state.minPrice;
 maxPrice.value = state.maxPrice;
-
+// שומר את הטיימר של ה-debounce
 let priceTimer;
-
+// מעדכנת את פילטר המחיר בזמן ההקלדה
 function updatePriceFilter() {
   state.minPrice = minPrice.value;
   state.maxPrice = maxPrice.value;
@@ -235,7 +247,7 @@ function updatePriceFilter() {
   );
 
   clearTimeout(priceTimer);
-
+// debounce - מחכה 300ms לפני שליחת הבקשה
   priceTimer = setTimeout(() => {
     loadProducts();
   }, 300);
@@ -256,15 +268,16 @@ clearPrice.onclick = () => {
 
   loadProducts();
 };
-
+ // מטפל בבחירת Condition
 document.querySelectorAll('.check input').forEach(cb => {
   cb.checked = state.condition === cb.value;
 
   cb.onchange = () => {
+    // מאפשר בחירה של Condition אחד בלבד
     document.querySelectorAll('.check input').forEach(other => {
       if (other !== cb) other.checked = false;
     });
-
+  // שומר את ה-Condition שנבחר
     state.condition = cb.checked ? cb.value : '';
     state.page = 1;
 
@@ -276,7 +289,7 @@ document.querySelectorAll('.check input').forEach(cb => {
 });
 
 const clearCondition = document.getElementById('clearCondition');
-
+ // מנקה את פילטר Condition
 if (clearCondition) {
   clearCondition.onclick = () => {
     state.condition = '';
@@ -288,7 +301,7 @@ if (clearCondition) {
     loadProducts();
   };
 }
-
+// מאפס את כל החיפוש והפילטרים
 document.getElementById('clearFilters').onclick = () => {
   state.page = 1;
   state.sort = 'newest';
@@ -310,19 +323,19 @@ document.getElementById('clearFilters').onclick = () => {
 };
 
 }
-
+// מציגה Categories לפי ה-Gender שנבחר
 function renderCategories() {
   const el = document.getElementById('categoryGroup');
   const typeEl = document.getElementById('typeGroup');
-
+// בלי Gender אין Categories או Types
   if (!state.gender || !CATEGORIES[state.gender]) {
     el.innerHTML = '';
     typeEl.innerHTML = '';
     return;
   }
-
+// לוקח את הקטגוריות של ה-Gender שנבחר
   const categories = CATEGORIES[state.gender].categories;
-
+// יוצר את כפתורי ה-Category
   el.innerHTML = `
     <div class="flex between center">
       <h4>Category</h4>
@@ -344,6 +357,7 @@ function renderCategories() {
   document.querySelectorAll('[data-category]').forEach(btn => {
   btn.onclick = () => {
     state.category = btn.dataset.category;
+    // Type תלוי ב-Category ולכן מתאפס
     state.type = '';
     state.page = 1;
 
@@ -355,6 +369,7 @@ function renderCategories() {
 
   const clearCategory = document.getElementById('clearCategory');
   
+  //מנקה Category Type שתלוי בו
   if (clearCategory) {
     clearCategory.onclick = () => {
       state.category = '';
@@ -368,10 +383,10 @@ function renderCategories() {
   }
 }
 
-
+// מציגה Types לפי Gender ו-Category
 function renderTypes() {
   const el = document.getElementById('typeGroup');
-
+// בלי Gender ו-Category אין Type
   if (!state.gender || !state.category) {
     el.innerHTML = '';
     return;
@@ -383,7 +398,7 @@ function renderTypes() {
     el.innerHTML = '';
     return;
   }
-
+// יוצר את כפתורי ה-Type
   el.innerHTML = `
     <div class="flex between center">
       <h4>Type</h4>
@@ -413,7 +428,7 @@ function renderTypes() {
 });
 
 const clearType = document.getElementById('clearType');
-
+// מנקה רק את Type
 if (clearType) {
   clearType.onclick = () => {
     state.type = '';
@@ -425,7 +440,7 @@ if (clearType) {
 }
 
 }
-
+// אתחול עמוד החנות
 renderFilters();
 renderCategories();
 renderTypes();
