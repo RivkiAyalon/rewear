@@ -1,3 +1,4 @@
+// טוענת מוצר לפי הID שנמצא בURL ומציגה את עמוד המוצר
 async function loadProduct() {
   const box = document.getElementById('product');
   const id = getParam('id');
@@ -12,10 +13,11 @@ async function loadProduct() {
   }
 
   try {
+    // מביא מהשרת את המוצר לפי ה-ID
     const product = await api(`/api/products/${id}`);
-    
+    // ממיר את המחיר משקלים לדולרים
     const usdPrice = await priceInUsd(product.price);
-
+    // בונה ומציג את עמוד המוצר
     box.innerHTML = `
       <div class="product-page">
 
@@ -88,29 +90,31 @@ async function loadProduct() {
 
       </div>
     `;
-
+    // מחליף את התמונה הראשית כשלוחצים על תמונה קטנה
     document.querySelectorAll('.product-thumb').forEach(img => {
       img.onclick = () => {
         document.getElementById('mainImage').src = img.src;
       };
     });
     const favoriteBtn = document.getElementById('favoriteBtn');
-let isFavorite = false;
-
+    // שומר אם המוצר נמצא כרגע במועדפים
+    let isFavorite = false;
+// בודקת אם המוצר במועדפים ומעדכנת את הכפתור
 async function refreshProductFavorite() {
+  // אם המשתמשת לא מחוברת - אין מועדפים לבדוק
   if (!getToken()) {
     isFavorite = false;
     favoriteBtn.textContent = '♡ Favorite';
     return;
   }
-
   try {
+    // מביא מהשרת את רשימת המועדפים של המשתמשת
     const favorites = await api('/api/favorites');
-
+    // בודק אם המוצר הנוכחי קיים ברשימת המועדפים
     isFavorite = favorites.some(
       fav => fav._id === product._id
     );
-
+    // מעדכן את טקסט הכפתור לפי מצב המועדף
     favoriteBtn.textContent = isFavorite
       ? '♥ Favorited'
       : '♡ Favorite';
@@ -119,11 +123,13 @@ async function refreshProductFavorite() {
     console.log('Could not load favorites:', err.message);
   }
 }
-
+// בודקת את מצב המועדף כשהעמוד נטען
 await refreshProductFavorite();
-
+// מוסיפה או מסירה את המוצר מהמועדפים
 favoriteBtn.onclick = async () => {
+  // אם המשתמשת לא מחוברת - מעביר למסך התחברות
   if (!getToken()) {
+    // שומר את כתובת המוצר כדי לחזור אליה אחרי התחברות
     const redirect = encodeURIComponent(
       window.location.pathname + window.location.search
     );
@@ -133,23 +139,25 @@ favoriteBtn.onclick = async () => {
   }
 
   try {
+    // אם המוצר כבר במועדפים - מסיר אותו
     if (isFavorite) {
       await api(`/api/favorites/${product._id}`, {
         method: 'DELETE'
       });
-
+      // מעדכן את מצב המועדף
       isFavorite = false;
       favoriteBtn.textContent = '♡ Favorite';
       showToast('Removed from favorites', 'success');
 
     } else {
+      // אם המוצר לא במועדפים - מוסיף אותו
       await api('/api/favorites', {
         method: 'POST',
         body: JSON.stringify({
           productId: product._id
         })
       });
-
+      // מעדכן את מצב המועדף
       isFavorite = true;
       favoriteBtn.textContent = '♥ Favorited';
       showToast('Added to favorites', 'success');
@@ -159,12 +167,13 @@ favoriteBtn.onclick = async () => {
     showToast(err.message, 'error');
   }
 };
-
+// בודק מחדש את מצב המועדף כשחוזרים לעמוד
 window.addEventListener('pageshow', () => {
   refreshProductFavorite();
 });
-
+    // מעביר את המוצר שנבחר לעמוד התשלום
     document.getElementById('buyBtn').onclick = () => {
+      // מאפשר קנייה רק אם המוצר לא נמכר
       if (product.status !== 'sold') {
         window.location.href = `/checkout.html?id=${product._id}`;
       }
@@ -179,5 +188,5 @@ window.addEventListener('pageshow', () => {
     `;
   }
 }
-
+// מפעיל את טעינת המוצר כשנכנסים לעמוד
 loadProduct();
