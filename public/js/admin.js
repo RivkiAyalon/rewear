@@ -1,8 +1,26 @@
+// ============================================
+// admin.js — לוח הבקרה של המנהלת
+// ============================================
+// חמישה טאבים. שניים שלי (משתמשות, הזמנות)
+// ושלושה של מפתחת 5 (סקירה, מוצרים, הודעות).
+// ============================================
+
+// ⭐ זו הסתרה, לא אבטחה!
+// requireAdmin רק בודקת מה כתוב ב-localStorage.
+// אפשר לערוך אותו ידנית ולהיכנס לעמוד — אבל
+// אז כל הטבלאות יישארו ריקות, כי כל קריאת API
+// תחזיר 403 מ-isAdmin בשרת.
+// ההגנה האמיתית: router.use(auth, isAdmin)
 // עמוד מנהלת בלבד
 if (!requireAdmin()) throw new Error('not admin');
 
 // ===== טאבים =====
 
+// ⭐ ההבדל מהפרופיל: שם כל כניסה לטאב טוענת
+// מחדש, כאן רק פעם אחת. הסיבה — הדשבורד כבד
+// (טבלאות גדולות, Chart.js), ואין טעם לטעון
+// שוב בכל מעבר. הרענון קורה אחרי פעולה
+// (loadUsers אחרי מחיקה), לא אחרי מעבר טאב.
 const loaded = {};   // כל טאב נטען פעם אחת בלבד
 
 function switchTab(tab) {
@@ -12,8 +30,11 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(panel =>
     panel.classList.toggle('hidden', panel.id !== `tab-${tab}`)
   );
+  // replaceState — מעדכן כתובת בלי להוסיף להיסטוריה
   history.replaceState(null, '', `?tab=${tab}`);
 
+  // ⭐ המנגנון: אם כבר נטען — יוצאים.
+  // אם לא — מסמנים וטוענים.
   if (loaded[tab]) return;
   loaded[tab] = true;
 
@@ -29,6 +50,7 @@ document.querySelectorAll('.tab').forEach(btn => {
   btn.onclick = () => switchTab(btn.dataset.tab);
 });
 
+// נפתח על Overview, או על מה שבכתובת
 switchTab(getParam('tab') || 'overview');
 
 // ===== רבקי — ניהול משתמשות =====
@@ -37,7 +59,13 @@ async function loadUsers() {
   const box = document.getElementById('usersTable');
 
   try {
+    // ⭐ getUsers בשרת מחזיר גם ספירת מוצרים
+    // והזמנות לכל משתמשת, דרך Promise.all.
+    // החישוב שם ולא כאן — כדי לא למשוך את כל
+    // המוצרים וההזמנות לדפדפן רק כדי לספור.
     const users = await api('/api/admin/users');
+
+    // מי אני — כדי לא להציג לעצמי כפתורי מחיקה
     const me = getUser();
 
     box.innerHTML = `
@@ -89,21 +117,53 @@ async function loadUsers() {
   }
 }
 
+// ============================================
+// הערות לטבלת המשתמשות
+// ============================================
+// overflow-x:auto — הטבלה רחבה, בטלפון
+//   גוללים אותה לצדדים
+//
+// || '—' — עיר וטלפון לא חובה במודל
+//
+// badge-new — תג צבעוני למנהלת, רגיל למשתמשת
+//
+// ⭐⭐ u._id === me._id — הגנה כפולה:
+//   כאן מסתירים את הכפתורים מהשורה שלי,
+//   ובשרת changeRole ו-deleteUser בודקות
+//   req.params.id === req.user.id ומחזירות 400.
+//   בלי זה, מנהלת יחידה הייתה יכולה להוריד
+//   את עצמה ולנעול את המערכת בלי אף מנהלת.
+// ============================================
+
+// ⭐ כפתור אחד שעושה את שני הכיוונים.
+// שולח את ה-role החדש ולא "הפוך" — כך השרת
+// לא צריך לדעת מה היה קודם.
+//
+// ⭐⭐ נקודה חשובה להגנה: השינוי לא נכנס לתוקף
+// עד שהיא תתחבר מחדש! JWT הוא stateless —
+// הטוקן הישן עדיין נושא role: 'user' והוא תקף
+// שבעה ימים. פתרונות: רשימת טוקנים מבוטלים,
+// או שליפת ה-role מהמסד בכל בקשה. שתיהן עולות
+// בביצועים, ולכן לא מימשנו.
 async function toggleRole(id, currentRole) {
   const newRole = currentRole === 'admin' ? 'user' : 'admin';
 
   try {
+    // PUT — מעדכנים משאב קיים
     await api(`/api/admin/users/${id}/role`, {
       method: 'PUT',
       body: JSON.stringify({ role: newRole })
     });
     showToast(`Role changed to ${newRole}`, 'success');
-    loadUsers();
+    loadUsers();   // מרענן כדי לראות את התג החדש
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
+// ⭐ confirm לפני כל פעולה הרסנית.
+// השם בהודעה ולא רק "Are you sure?" —
+// כדי שיהיה ברור את מי מוחקים.
 async function removeUser(id, name) {
   if (!confirm(`Delete ${name}? This will also remove their available items.`)) return;
 
@@ -118,10 +178,22 @@ async function removeUser(id, name) {
 
 
 // ===== רבקי — טבלת הזמנות עם פרטי קשר =====
+// ⭐ התפקיד העסקי של הטאב הזה:
+// באתר, קונה ומוכרת לא רואות את הפרטים זו של זו.
+// אנחנו מחברות ביניהן. הטבלה הזו היא הכלי לכך —
+// ולכן היא מציגה מייל, טלפון ועיר של שני הצדדים.
 
+// מיפוי קוד לתווית תצוגה
 const PAYMENT_LABEL = { card: 'Card', points: 'Points' };
 
+// ⭐ פונקציה אחת לשני הצדדים, כדי לא לכתוב
+// את אותו HTML פעמיים.
+// mailto: ו-tel: — לחיצה פותחת מייל או חיוג,
+// ועוזרת למנהלת ליצור קשר מהר.
 function contactCell(person, role) {
+  // ⭐ populate מחזיר null אם המשתמשת נמחקה.
+  // בלי הבדיקה הזו הטבלה הייתה קורסת על
+  // person.name של null.
   if (!person) return '<span class="muted">Deleted user</span>';
 
   return `
@@ -140,6 +212,9 @@ async function loadOrders() {
   const box = document.getElementById('ordersTable');
 
   try {
+    // ⭐ getOrders בשרת עושה שלושה populate:
+    // productId, buyerId ו-sellerId. בלעדיהם
+    // היינו מקבלים ObjectId במקום שמות ומיילים.
     const orders = await api('/api/admin/orders');
 
     if (!orders.length) {
@@ -147,6 +222,10 @@ async function loadOrders() {
       return;
     }
 
+    // ⭐ סיכום הכנסות — רק completed.
+    // הזמנה שבוטלה לא נספרת.
+    // filter מסנן, reduce מסכם. ה-0 בסוף הוא
+    // ערך ההתחלה, בלעדיו מערך ריק מתרסק.
     const revenue = orders
       .filter(o => o.status === 'completed')
       .reduce((sum, o) => sum + o.price, 0);
@@ -214,8 +293,28 @@ async function loadOrders() {
   }
 }
 
+// ============================================
+// הערות לטבלת ההזמנות
+// ============================================
+// ?. בכל מקום — מוצר עשוי להימחק אחרי שנקנה
+//
+// ⭐ o.price ולא o.productId.price:
+//   המחיר נשמר בהזמנה כצילום מצב. אם המוכרת
+//   תשנה מחיר מאוחר יותר, ההזמנה לא משתנה.
+//
+// ⭐ "Item location" — עיר המוצר, לא של אף
+//   אחת מהן. משם אוספים את הפריט.
+//
+// ⭐⭐ cardLast4 — ארבע ספרות בלבד.
+//   זו ההוכחה שמספר הכרטיס המלא לא נשמר אצלנו:
+//   checkout.js עושה slice(-4) ושולח רק אותן.
+//   שדה למספר מלא בכלל לא קיים במודל.
+// ============================================
+
 // ===== מפתחת 5 — סטטיסטיקות וגרפים =====
 
+// מונגו מחזיר חודש 1-12, מערך מתחיל מ-0.
+// לכן MONTHS[month - 1] למטה.
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun',
                 'Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -224,6 +323,8 @@ async function loadOverview() {
   await loadCharts();
 }
 
+// ארבעת הכרטיסים. getStats בשרת מריץ
+// ארבע שאילתות במקביל עם Promise.all.
 async function loadStats() {
   const box = document.getElementById('adminStats');
 
@@ -255,6 +356,9 @@ async function loadStats() {
   }
 }
 
+// ⭐ שני ה-Aggregate של הפרויקט, מצוירים
+// עם Chart.js. Promise.all — שתי קריאות
+// במקביל ולא בזו אחר זו.
 async function loadCharts() {
   try {
     const [sales, sellers] = await Promise.all([
@@ -263,6 +367,7 @@ async function loadCharts() {
     ]);
 
     // גרף 1 — מכירות לפי חודש
+    // month - 1 כי מונגו סופר מ-1 והמערך מ-0
     new Chart(document.getElementById('salesChart'), {
       type: 'bar',
       data: {
@@ -280,7 +385,9 @@ async function loadCharts() {
       }
     });
 
-    // גרף 2 — חמש המוכרות המובילות, אופקי
+    // גרף 2 — חמש המוכרות המובילות, אופקי.
+    // indexAxis: 'y' הופך את הגרף לאופקי,
+    // כדי ששמות ארוכים ייקראו
     new Chart(document.getElementById('sellersChart'), {
       type: 'bar',
       data: {
@@ -306,12 +413,18 @@ async function loadCharts() {
 
 // ===== מפתחת 5 — ניהול מוצרים =====
 
+// ⭐ מחזיקים את כל המוצרים בזיכרון, כדי לסנן
+// בצד לקוח. שונה מהחנות, שם הסינון בשרת —
+// כי שם יש דפדוף ואי אפשר למשוך הכול.
 let allProducts = [];
 
 async function loadProducts() {
   const box = document.getElementById('adminProducts');
 
   try {
+    // ⭐ /api/admin/products ולא /api/products:
+    // הנתיב הציבורי מחזיר רק available,
+    // המנהלת צריכה לראות גם את מה שנמכר
     allProducts = await api('/api/admin/products');
     renderProducts();
   } catch (err) {
@@ -319,6 +432,7 @@ async function loadProducts() {
   }
 }
 
+// מרנדר מחדש בכל הקלדה — בלי קריאת רשת
 function renderProducts() {
   const box    = document.getElementById('adminProducts');
   const search = document.getElementById('productSearch').value.trim().toLowerCase();
@@ -328,6 +442,7 @@ function renderProducts() {
   const list = allProducts.filter(p => {
     if (status && p.status !== status) return false;
     if (!search) return true;
+    // toLowerCase בשני הצדדים — חיפוש ללא תלות ברישיות
     return p.title.toLowerCase().includes(search) ||
            (p.brand || '').toLowerCase().includes(search);
   });
@@ -387,6 +502,18 @@ function renderProducts() {
   `;
 }
 
+// ============================================
+// הערות לטבלת המוצרים
+// ============================================
+// ⭐ p.status === 'sold' — מוצר שנמכר לא נמחק,
+//   כי יש הזמנה שמצביעה עליו. הכפתור מוסתר
+//   כאן והשרת חוסם ב-400.
+//
+// ⭐ p.title.replace(/'/g, "\\'") — בריחה מגרש.
+//   שם מוצר כמו "Levi's Jacket" היה שובר את
+//   ה-onclick, כי הגרש סוגר את המחרוזת מוקדם.
+// ============================================
+
 async function removeProduct(id, title) {
   if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
 
@@ -399,8 +526,16 @@ async function removeProduct(id, title) {
   }
 }
 
+// oninput — מסנן תוך כדי הקלדה
 document.getElementById('productSearch').oninput  = renderProducts;
 document.getElementById('productStatus').onchange = renderProducts;
+
+// ===== מפתחת 5 — הודעות =====
+// ⭐ הנקודה החזקה כאן: התוכן מגיע מאורחת
+// אנונימית — הקלט הכי לא-מהימן במערכת.
+// בלי escapeHtml, הודעה שמכילה
+// <img src=x onerror="..."> הייתה רצה
+// בדפדפן של המנהלת. זו מתקפת XSS מאוחסנת.
 
 async function loadMessages() {
   const box = document.getElementById('adminMessages');
@@ -472,4 +607,3 @@ async function markMessageRead(id) {
     showToast(err.message, 'error');
   }
 }
-

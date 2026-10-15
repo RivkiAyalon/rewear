@@ -1,3 +1,21 @@
+// ============================================
+// profile.js — העמוד האישי
+// ============================================
+// ששה טאבים: פרטים, נקודות, המוצרים שלי,
+// פרסום פריט, מועדפים, הזמנות.
+//
+// ⭐ הקובץ הזה לא לבד בעמוד. profile.html טוען
+// גם categories.js, cities.js, upload.js,
+// products.js ו-myProducts.js — וכולם משתפים
+// את אותו מרחב משתנים. לכן שמות הפונקציות כאן
+// חייבים להיות ייחודיים (switchProfileTab ולא
+// switchTab, כדי לא להתנגש).
+// ============================================
+
+// ⭐ שורה ראשונה, לפני הכול: עמוד מוגן.
+// ה-throw עוצר את שאר הקובץ — בלעדיו הקוד
+// היה ממשיך לרוץ ולקרוס על אלמנטים חסרים
+// בזמן שהדפדפן כבר בדרך לעמוד ההתחברות.
 // עמוד מוגן — מי שלא מחוברת מועברת להתחברות
 if (!requireAuth()) throw new Error('not authenticated');
 
@@ -5,27 +23,50 @@ if (!requireAuth()) throw new Error('not authenticated');
 // ============================================
 // טאבים
 // ============================================
+// ⭐ כל הטאבים קיימים ב-HTML מההתחלה. המעבר
+// הוא רק הוספה והסרה של class="hidden" —
+// לא טעינת עמוד מחדש.
 
 function switchProfileTab(tab) {
+  // מסמנים את הכפתור הפעיל.
+  // ⭐ toggle עם פרמטר שני: מוסיף אם true,
+  // מסיר אם false. חוסך if/else.
   document.querySelectorAll('.tab').forEach(btn =>
     btn.classList.toggle('active', btn.dataset.tab === tab)
   );
+
+  // מסתירים את כל הפאנלים חוץ מהנבחר.
+  // ההתאמה לפי id: data-tab="points" → id="tab-points"
   document.querySelectorAll('.tab-panel').forEach(panel =>
     panel.classList.toggle('hidden', panel.id !== `tab-${tab}`)
   );
+
+  // ⭐ replaceState ולא pushState: מעדכן את
+  // הכתובת בלי להוסיף להיסטוריה. כך "אחורה"
+  // מחזיר לעמוד הקודם ולא מדלג בין טאבים.
+  // בזכות זה אפשר לשתף קישור ישיר לטאב.
   history.replaceState(null, '', `?tab=${tab}`);
 
+  // ⭐ טעינה עצלה (lazy loading): כל טאב פונה
+  // ל-API משלו. אם היינו טוענים הכול מראש —
+  // חמש קריאות רשת בכניסה לעמוד, רובן מיותרות.
   // טוענים את התוכן רק כשנכנסים לטאב
   if (tab === 'points')    loadPoints();
-  if (tab === 'items')     loadMyProducts();
+  if (tab === 'items')     loadMyProducts();   // מ-myProducts.js
   if (tab === 'favorites') loadFavorites();
   if (tab === 'orders')    { loadMyOrders(); loadMySales(); }
+  // details ו-sell לא כאן: details מתמלא
+  // ב-loadProfile, ו-sell הוא טופס ריק
 }
 
 document.querySelectorAll('.tab').forEach(btn => {
   btn.onclick = () => switchProfileTab(btn.dataset.tab);
 });
 
+// ⭐ נקרא גם בטעינת העמוד, לא רק בלחיצה.
+// ככה /profile.html?tab=orders נפתח ישר על
+// ההזמנות — וזה מה שמאפשר לקישורים בתפריט
+// ולהפניה מ-checkout להגיע למקום הנכון.
 // פותחים את הטאב לפי הכתובת — ה-navbar מפנה ל-?tab=sell וכו'
 switchProfileTab(getParam('tab') || 'details');
 
@@ -36,19 +77,34 @@ switchProfileTab(getParam('tab') || 'details');
 
 async function loadProfile() {
   try {
+    // ⭐ חשוב: מהשרת ולא מ-localStorage.
+    // ה-localStorage נשמר בהתחברות ומאז הנקודות
+    // השתנו — נמכר פריט, נקנה משהו. רק השרת
+    // יודע את היתרה האמיתית.
     // מביאים מהשרת ולא מ-localStorage, כדי שהנקודות יהיו מעודכנות
     const user = await api('/api/auth/me');
+
+    // מסנכרנים חזרה, כדי שהתפריט יציג את המספר הנכון
     localStorage.setItem('rewear_user', JSON.stringify(user));
 
+    // ===== הכותרת למעלה =====
+    // ⭐ textContent ולא innerHTML — אלה נתונים
+    // שהמשתמשת הקלידה, וכך אין סיכון XSS בלי
+    // צורך ב-escapeHtml
     document.getElementById('profileName').textContent   = user.name;
     document.getElementById('profileMeta').textContent   = `${user.city || ''} · ${user.email}`;
-    document.getElementById('profileAvatar').textContent = user.name[0];
+    document.getElementById('profileAvatar').textContent = user.name[0];   // אות ראשונה כאווטאר
     document.getElementById('profilePoints').textContent = user.points;
 
+    // ===== מילוי טופס הפרטים =====
     document.getElementById('detName').value  = user.name;
-    document.getElementById('detEmail').value = user.email;
+    document.getElementById('detEmail').value = user.email;   // disabled ב-HTML
     document.getElementById('detPhone').value = user.phone || '';
 
+    // ⭐ העיר הייתה select עם 1500 אפשרויות, והייתה
+    // בעיית תזמון: הערך הוצב לפני שהרשימה נטענה.
+    // המעבר ל-input עם datalist פתר את זה —
+    // input לא תלוי ברשימה כדי להחזיק ערך.
         // עכשיו זה input רגיל עם datalist, אז פשוט מציבים
     document.getElementById('detCity').value = user.city || '';
 
@@ -66,8 +122,9 @@ const saveBtn = document.getElementById('saveDetails');
 
 saveBtn.onclick = async () => {
   const errEl = document.getElementById('detError');
-  errEl.classList.add('hidden');
+  errEl.classList.add('hidden');   // מנקים שגיאה קודמת
 
+  // trim — "רבקי " ו-"רבקי" צריכים להיות אותו דבר
   const name  = document.getElementById('detName').value.trim();
   const city  = document.getElementById('detCity').value.trim();
   const phone = document.getElementById('detPhone').value.trim();
@@ -78,10 +135,16 @@ saveBtn.onclick = async () => {
     return;
   }
 
+  // ⭐ נועלים את הכפתור — בלי זה לחיצה כפולה
+  // מהירה שולחת שתי בקשות
   saveBtn.disabled = true;
   saveBtn.textContent = 'Saving...';
 
   try {
+    // ⭐⭐ שולחים שלושה שדות בלבד.
+    // גם אם נשלח כאן { points: 99999 }, השרת
+    // יתעלם: updateMe מפרק רק name, city, phone.
+    // ההגנה היא בשרת — זה פשוט תואם לה.
     const user = await api('/api/auth/me', {
       method: 'PUT',
       body: JSON.stringify({ name, city, phone })
@@ -90,7 +153,7 @@ saveBtn.onclick = async () => {
     localStorage.setItem('rewear_user', JSON.stringify(user));
     showToast('Your details were saved', 'success');
     renderNavbar();       // מרענן את השם והאות בתפריט
-    loadProfile();
+    loadProfile();        // מרענן את הכותרת
 
   } catch (err) {
     showToast(err.message, 'error');
@@ -106,6 +169,10 @@ saveBtn.onclick = async () => {
 // ============================================
 // נקודות
 // ============================================
+// ⭐ קריאה אחת מחזירה הכול: יתרה, סכומים
+// ורשימה מאוחדת של מכירות וקניות.
+// האיחוד והמיון נעשים בשרת (getPoints),
+// אז כאן רק מרנדרים לולאה אחת.
 
 async function loadPoints() {
   const box = document.getElementById('ptsHistory');
@@ -117,6 +184,7 @@ async function loadPoints() {
     document.getElementById('ptsEarned').textContent  = `+${data.earned}`;
     document.getElementById('ptsSpent').textContent   = `−${data.spent}`;
 
+    // מסך ריק — חשוב שלא יישאר ספינר שמסתובב לנצח
     if (!data.history.length) {
       box.innerHTML = `<div class="empty">
         <h3>No activity yet</h3>
@@ -125,6 +193,8 @@ async function loadPoints() {
       return;
     }
 
+    // ⭐ escapeHtml על הכותרת — שם המוצר הוקלד
+    // על ידי משתמשת אחרת, אז הוא קלט לא מהימן
     box.innerHTML = `<div class="panel">${data.history.map(h => `
       <div class="pts-row">
         <div>
@@ -132,6 +202,7 @@ async function loadPoints() {
           <div class="small muted">${h.type === 'earned' ? 'Sold' : 'Bought with points'}
             · ${formatDate(h.date)}</div>
         </div>
+        <!-- ה-type הופך למחלקת CSS: ירוק לנכנס, אדום ליוצא -->
         <div class="pts-amount ${h.type}">
           ${h.type === 'earned' ? '+' : '−'}${h.amount}
         </div>
@@ -147,6 +218,9 @@ async function loadPoints() {
 // ============================================
 // מועדפים
 // ============================================
+// ⭐ כרטיס מותאם ולא productCard המשותף:
+// כאן צריך כפתורי "קנה" ו"הסר" שאין בכרטיס
+// הרגיל, ולא צריך את הלב (הכול כאן מועדף).
 
 async function loadFavorites() {
   const box = document.getElementById('favorites');
@@ -156,7 +230,7 @@ async function loadFavorites() {
 
   try {
     const products = await api('/api/favorites');
-    const usdRate = await getUsdRate();
+    const usdRate = await getUsdRate();   // מ-currency.js
 
     if (!products.length) {
       box.innerHTML = `<div class="empty">
@@ -178,6 +252,7 @@ async function loadFavorites() {
               </div>
             </a>
             <div class="card-body">
+              <!-- escapeHtml: המוכרת הקלידה את הטקסטים האלה -->
               <div class="card-brand">${escapeHtml(p.brand)}</div>
               <div class="card-title">${escapeHtml(p.title)}</div>
               <div class="card-meta">${p.size} · ${p.condition}</div>
@@ -188,6 +263,8 @@ async function loadFavorites() {
               
 
               <div class="flex gap-sm mt">
+                <!-- ⭐ פריט שנמכר בזמן שהיה במועדפים:
+                     הכפתור נעלם, אבל הכרטיס נשאר -->
                 ${p.status === 'sold' ? '' : `
                   <a class="btn btn-primary btn-sm"
                      href="/checkout.html?id=${p._id}">Buy now</a>
@@ -206,11 +283,14 @@ async function loadFavorites() {
   }
 }
 
+// ⭐ נקראת מ-onclick בתוך ה-HTML שנוצר למעלה,
+// ולכן חייבת להיות גלובלית (לא בתוך פונקציה אחרת)
 async function removeFavorite(productId) {
   try {
+    // ה-id בנתיב ולא בגוף — זה הסטנדרט ל-DELETE
     await api(`/api/favorites/${productId}`, { method: 'DELETE' });
     showToast('Removed from favorites', 'success');
-    loadFavorites();
+    loadFavorites();   // מרענן את הרשימה
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -220,10 +300,14 @@ async function removeFavorite(productId) {
 // ============================================
 // ההזמנות שלי
 // ============================================
+// ⭐⭐ נקודה חזקה להגנה — החלטת מוצר מודעת:
 // אין כאן כפתור ביטול בכוונה:
 // קונה שקיבלה את הפריט פיזית הייתה יכולה לבטל
 // ולהשאיר את המוכרת בלי הפריט ובלי התמורה.
 // ביטול עובר דרך המנהלת, שרואה את שני הצדדים.
+//
+// לכן גם cancelOrder הוסרה מהשרת לגמרי —
+// לא רק הוסתר הכפתור. אין נתיב API לביטול.
 
 async function loadMyOrders() {
   const box = document.getElementById('myOrders');
@@ -232,6 +316,9 @@ async function loadMyOrders() {
   box.innerHTML = '<div class="spinner"></div>';
 
   try {
+    // ⭐ /my — השרת מסנן לפי req.user.id מהטוקן,
+    // לא לפי id שאנחנו שולחים. לכן אי אפשר
+    // לבקש את ההזמנות של מישהי אחרת.
     const orders = await api('/api/orders/my');
 
     if (!orders.length) {
@@ -241,6 +328,7 @@ async function loadMyOrders() {
 
     box.innerHTML = orders.map(o => `
       <div class="order-row">
+        <!-- ?. כי המוצר אולי נמחק מאז הקנייה -->
         <img src="${o.productId?.images?.[0] || ''}" alt="">
         <div class="order-info">
           <strong>${escapeHtml(o.productId?.title) || 'Item'}</strong>
@@ -259,6 +347,8 @@ async function loadMyOrders() {
         </div>
       </div>
     `).join('') + `
+      <!-- ⭐ במקום כפתור ביטול: הפניה אלינו.
+           כל פנייה נכנסת לטאב ההודעות בדשבורד -->
       <p class="muted small mt">
         Something wrong with an order?
         <a href="/contact.html" class="contact-link">Contact us</a>
@@ -275,6 +365,10 @@ async function loadMyOrders() {
 // ============================================
 // המכירות שלי
 // ============================================
+// ⭐ אותן הזמנות, מהצד השני. ההבדל: שם הקונה
+// במקום המוכרת, והנקודות שנכנסו במקום הסטטוס.
+// בשרת אלה שתי שאילתות על אותו אוסף —
+// האחת מסננת לפי buyerId, השנייה לפי sellerId.
 
 async function loadMySales() {
   const box = document.getElementById('mySales');
@@ -303,6 +397,8 @@ async function loadMySales() {
           </div>
         </div>
         <div>
+          <!-- pointsEarned נשמר בהזמנה ולא מחושב מחדש:
+               צילום מצב של מה שהתקבל בפועל -->
           <span class="pts-amount earned">+${o.pointsEarned}</span>
           <div class="small muted">points</div>
         </div>
@@ -315,4 +411,6 @@ async function loadMySales() {
 }
 
 
+// ⭐ רץ מיד בטעינת העמוד, בלי קשר לטאב —
+// הכותרת והנקודות למעלה מוצגות תמיד
 loadProfile();
