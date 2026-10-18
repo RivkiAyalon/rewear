@@ -58,7 +58,7 @@ async function loadProducts() {
       })
     ).join('')}
   </div>`;
-  // מעדכן אילו לבבות מסומנים כמועדפים
+  // (בודק מול השרת) מעדכן אילו לבבות מסומנים כמועדפים
   await refreshFavoriteHearts();
 
   } catch (err) {
