@@ -1,10 +1,10 @@
-// תפיסת האלמנטים לפי ה-IDs הקיימים ב-profile.html
+// תפיסת אלמנטים מסוג Select מה-DOM (ממשק המשתמש) לצורך ניהול רשימות נפתחות דינמיות
 const genderSelect = document.getElementById('gender');
 const categorySelect = document.getElementById('category');
 const typeSelect = document.getElementById('type');
 const sizeSelect = document.getElementById('size');
 
-// מילוי קטגוריות מתוך categories.js
+// מילוי דינמי של רשימת הקטגוריות בהתאם למגדר שנבחר מתוך קובץ הנתונים categories.js
 function fillCategories(gender) {
   if (typeof CATEGORIES === 'undefined' || !CATEGORIES[gender]) return;
   const cats = CATEGORIES[gender].categories;
@@ -14,7 +14,7 @@ function fillCategories(gender) {
       .join('');
 }
 
-// מילוי סוגי פריטים מתוך categories.js
+// מילוי דינמי של תתי-סוגי הפריטים (Types) בהתאם למגדר ולקטגוריה שנבחרו
 function fillTypes(gender, category) {
   if (typeof CATEGORIES === 'undefined' || !CATEGORIES[gender]?.categories[category]) return;
   const types = CATEGORIES[gender].categories[category].types;
@@ -24,7 +24,7 @@ function fillTypes(gender, category) {
       .join('');
 }
 
-// מילוי מידות מתוך categories.js
+// מילוי דינמי של רשימת המידות (Sizes) לפי הקטגוריה והמגדר (בגדי ילדים, נעליים, אביזרים או ביגוד)
 function fillSizes(gender, category) {
   if (typeof SIZES === 'undefined') return;
   let sizes;
@@ -42,7 +42,7 @@ function fillSizes(gender, category) {
     sizes.map(s => `<option value="${s}">${s}</option>`).join('');
 }
 
-// אירוע שינוי במגדר
+// מאזין אירועים (Event Listener) לשינוי בשדה המגדר - מעדכן ומאפשר את רשימת הקטגוריות ומאפס שדות סמוכים
 if (genderSelect) {
   genderSelect.addEventListener('change', (e) => {
     const gender = e.target.value;
@@ -60,7 +60,7 @@ if (genderSelect) {
   });
 }
 
-// אירוע שינוי בקטגוריה
+// מאזין אירועים לשינוי בשדה הקטגוריה - מעדכן ומאפשר את שדות סוג הפריט והמידות
 if (categorySelect) {
   categorySelect.addEventListener('change', (e) => {
     const gender = genderSelect.value;
@@ -78,24 +78,23 @@ if (categorySelect) {
 }
 
 // ============================================
-// שליחת טופס פרסום המוצר
+// טיפול באירוע שליחת טופס פרסום/עריכת מוצר (Form Submission)
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
 
   const publishForm = document.getElementById('publish-form');
 
-  // אם אנחנו לא בעמוד עם הטופס — לא עושים כלום
+  // בדיקה אם הטופס קיים בדף הנוכחי למניעת שגיאות הרצה
   if (!publishForm) return;
 
   publishForm.addEventListener('submit', async (e) => {
 
-    // מונע מהדפדפן לרענן את העמוד
-    // (זו התנהגות ברירת המחדל של form)
+    // מניעת התנהגות ברירת המחדל של הדפדפן (Prevent Default Page Refresh) כדי לבצע שליחה באסינכרוניות (AJAX/Fetch)
     e.preventDefault();
 
     // ============================================
-    // 1. איסוף הנתונים מהטופס
+    // 1. איסוף נתוני השדות מהטופס ובניית אובייקט המוצר
     // ============================================
     const productData = {
       title:       document.getElementById('title').value.trim(),
@@ -110,15 +109,14 @@ document.addEventListener('DOMContentLoaded', () => {
       color:       document.getElementById('color')?.value.trim() || '',
       city:        document.getElementById('city').value,
 
-      // הכתובות שחזרו מ-Cloudinary ב-upload.js
+      // שליפת כתובות התמונות שהועלו לענן של Cloudinary דרך המשתנה הגלובלי מ-upload.js
       images: window.uploadedImageUrls || []
     };
 
     // ============================================
-    // 2. ולידציה בצד לקוח
+    // 2. ולידציה בצד הלקוח (Client-Side Validation)
     // ============================================
-    // זו נוחות בלבד! אפשר לעקוף אותה דרך Postman.
-    // ההגנה האמיתית היא במודל Product ובקונטרולר.
+    // בדיקת תקינות השדות בדפדפן לפני פנייה לשרת - לשיפור חווית המשתמש (הוולידציה הראשית מבוצעת בשרת)
 
     if (!productData.title) {
       return showToast('Please add a title', 'error');
@@ -135,25 +133,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================
-    // 3. נעילת הכפתור
+    // 3. נעילת כפתור השליחה (UI Debouncing / Preventing Double Submit)
     // ============================================
-    // בלי זה, לחיצה כפולה מהירה תיצור שני מוצרים זהים
+    // מניעת קריאות כפולות לשרת ושליחות כפולות בעת לחיצה מהירה
     const submitBtn = publishForm.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Publishing...';
 
     try {
       
-      // בודקים אם זו עריכה או יצירה חדשה
+      // בדיקת מצב הטופס: אם קיים Dataset Edit ID - מדובר בעדכון פריט (PUT), אחרת ביצירת פריט חדש (POST)
       const editId = publishForm.dataset.editId;
 
       if (editId) {
+        // שליחת בקשת PUT לעדכון מוצר קיים מול ה-API בשרת
         await api(`/api/products/${editId}`, {
           method: 'PUT',
           body: JSON.stringify(productData)
         });
         showToast('Your item was updated', 'success');
       } else {
+        // שליחת בקשת POST ליצירת מוצר חדש מול ה-API בשרת
         await api('/api/products', {
           method: 'POST',
           body: JSON.stringify(productData)
@@ -161,19 +161,20 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Your item was published', 'success');
       }
 
-      // מנקים את מצב העריכה
+      // איפוס מזהה העריכה מהטופס
       delete publishForm.dataset.editId;
 
+      // העברת המשתמשת לעמוד הפרופיל (טאב המוצרים שלי) לאחר הפעולה
       setTimeout(() => {
         window.location.href = '/profile.html?tab=items';
       }, 900);
 
 
     } catch (err) {
-      // err.message מגיע מהשרת — זו ההודעה
-      // שהקונטרולר החזיר ב-{ message: ... }
+      // טיפול בשגיאות שחזרו מהשרת והצגת הודעת שגיאה בממשק (Toast Notification)
       showToast(err.message, 'error');
 
+      // שחרור נעילת כפתור השליחה במקרה של כישלון
       submitBtn.disabled = false;
       submitBtn.textContent = 'Publish item';
     }
