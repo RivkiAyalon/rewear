@@ -130,6 +130,14 @@ document.getElementById('searchBtn').onclick = doSearch;
 // חיפוש גם בלחיצה על Enter
 searchInput.onkeydown = e => {
   if (e.key === 'Enter') doSearch();
+
+searchInput.addEventListener('input', () => {
+  if (state.search !== '' && searchInput.value.trim() === '') {
+    state.search = '';
+    state.page = 1;
+    loadProducts();
+  }
+  });
 };
 // יוצרת את אזור הפילטרים
 function renderFilters() {
