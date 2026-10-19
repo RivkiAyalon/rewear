@@ -23,10 +23,9 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/favorites', require('./routes/favoriteRoutes'));
-
 app.use('/api/messages', require('./routes/messageRoutes'));
 
-// נתיב בדיקה — נמחק אותו בהמשך
+// נתיב בדיקה — בודק שהשרת חי
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, message: 'ReWear server is running' });
 });

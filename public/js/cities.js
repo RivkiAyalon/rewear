@@ -7,8 +7,7 @@ const CITIES_URL =
   '?resource_id=d4901968-dad3-4845-a9b0-a57d027f11ab&limit=1500';
 
 
-// מביאה את הרשימה מה-API, ואם הוא נופל —
-// נופלת לקובץ הגיבוי המקומי
+
 async function loadCities() {
   try {
     const res = await fetch(CITIES_URL);
